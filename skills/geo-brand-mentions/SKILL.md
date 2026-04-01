@@ -144,7 +144,48 @@ Based on the Ahrefs December 2025 study and corroborating research from Profound
 
 ---
 
-### 5. Other Platform Presence -- Supplementary
+### 5. Chinese Platform Presence -- High Correlation (China Market)
+
+**Why Chinese platforms matter for brands targeting China or Chinese-speaking audiences:**
+- China has 1.4B+ internet users and a distinct AI ecosystem (Douyin/ByteDance, Baidu ERNIE, Alibaba Qwen, MiniMax).
+- Chinese AI models (Kimi, Doubao, Wenxin, ZhiPu) train heavily on Chinese platform content.
+- For brands with Chinese audiences, presence on Douyin, Xiaohongshu (RED), and Bilibili is critical for AI visibility in China.
+- International brands targeting Chinese diaspora need WeChat and Weibo presence.
+
+**Platform Importance for Chinese AI Citations:**
+
+| Platform | Weight | Description |
+|----------|--------|-------------|
+| 抖音 (Douyin) | 20% | TikTok's Chinese version. Short video and live streaming. Core for product discovery and brand awareness. |
+| 小红书 (Xiaohongshu/RED) | 20% | Lifestyle platform. Critical for product reviews, "grass planting" (种草), and KOC/KOL influence. |
+| 知乎 (Zhihu) | 15% | Chinese Q&A platform. Similar to Quora. Builds professional authority. |
+| 微信 (WeChat) | 15% | Super-app with Official Accounts, Mini Programs, and Video Accounts. Content ecosystem. |
+| Bilibili (哔哩哔哩) | 10% | Video platform for young users. Tech reviews, tutorials, gaming content. |
+| 百度 (Baidu) | 10% | Main Chinese search engine. Baidu Zhidao (知道) and Baidu Baike (百科) for authority. |
+| 微博 (Weibo) | 10% | Microblogging platform. Hot search (热搜) drives viral awareness. |
+
+**What to check:**
+- **Douyin:** Does brand have official account? Follower count? Live streaming activity?
+- **Xiaohongshu:** Brand mentions in product reviews (种草笔记)? KOL/KOC presence?
+- **Zhihu:** Expert answers mentioning the brand? Official account presence?
+- **WeChat:** Official Account articles? Mini Programs?
+- **Bilibili:** Official UP主 channel? Video count and engagement?
+- **Baidu:** Baidu Baike entry? Baidu Zhidao Q&A presence?
+- **Weibo:** Hot search appearance? Official account followers?
+
+**Scoring for Chinese Platforms (0-100):**
+
+| Score | Criteria |
+|---|---|
+| 85-100 | Strong presence on 5+ platforms with active official accounts and organic mentions |
+| 70-84 | Active on 3-4 platforms with significant engagement |
+| 50-69 | Some presence on 2-3 platforms with limited activity |
+| 30-49 | Minimal presence on 1-2 platforms |
+| 0-29 | No meaningful Chinese platform presence |
+
+---
+
+### 6. Other Platform Presence -- Supplementary
 
 These platforms have lower but still meaningful correlation with AI visibility:
 
@@ -186,15 +227,21 @@ These platforms have lower but still meaningful correlation with AI visibility:
 
 | Platform | Weight | Rationale |
 |---|---|---|
-| YouTube Presence | 25% | Strongest correlation with AI citation (0.737) |
-| Reddit Presence | 25% | Second strongest correlation; critical for product recommendations |
-| Wikipedia / Wikidata | 20% | Entity recognition foundation; AI training data cornerstone |
-| LinkedIn Authority | 15% | Professional authority signals; B2B relevance |
+| YouTube Presence | 20% | Strongest correlation with AI citation (0.737) |
+| Reddit Presence | 20% | Second strongest correlation; critical for product recommendations |
+| Wikipedia / Wikidata | 15% | Entity recognition foundation; AI training data cornerstone |
+| LinkedIn Authority | 10% | Professional authority signals; B2B relevance |
+| **Chinese Platforms** | **20%** | **抖音(10%) + 小红书(10%), plus 知乎/微信/B站/百度/微博(shared 10%)** |
 | Other Platforms | 15% | Supplementary signals from Quora, GitHub, news, forums, podcasts |
 
-**Formula:**
+**Formula (International Brand):**
 ```
-Brand_Authority_Score = (YouTube * 0.25) + (Reddit * 0.25) + (Wikipedia * 0.20) + (LinkedIn * 0.15) + (Other * 0.15)
+Brand_Authority_Score = (YouTube * 0.20) + (Reddit * 0.20) + (Wikipedia * 0.15) + (LinkedIn * 0.10) + (Chinese * 0.20) + (Other * 0.15)
+```
+
+**Formula (China-Targeted Brand):**
+```
+Brand_Authority_Score = (Douyin * 0.20) + (Xiaohongshu * 0.20) + (Zhihu * 0.15) + (WeChat * 0.10) + (Bilibili * 0.10) + (Baidu * 0.10) + (Other * 0.15)
 ```
 
 ### Score Interpretation
@@ -221,9 +268,24 @@ Gather the following from the user or from the website:
 - **Key products or services** (top 3)
 - **Key competitors** (for comparison context)
 
-### Step 2: Platform Scanning
+### Step 2: Platform Scanning (Use Tavily for Initial Sweep)
 
-For each platform, use WebFetch to search and assess presence:
+**IMPORTANT: Use Tavily API FIRST for efficient multi-platform detection:**
+
+```bash
+# Set Tavily API key if available
+export TAVILY_API_KEY="your_tavily_api_key"
+
+# Run brand scanner with Tavily
+python3 scripts/brand_scanner.py "[Brand Name]" "[domain]"
+```
+
+**Tavily returns:**
+- Platform detection across 15+ platforms (YouTube, Reddit, Wikipedia, GitHub, 抖音, 小红书, 知乎, 微信, B站, 微博, etc.)
+- AI-generated answer summarizing brand presence
+- URL-level results for verification
+
+**Manual verification for each platform:**
 
 **YouTube Check:**
 1. Search: `[brand name] site:youtube.com`
@@ -290,6 +352,16 @@ if entities:
 4. Search: `[brand name] site:news.ycombinator.com` (Hacker News)
 5. Search: `"[brand name]"` broadly for news mentions (filter to last 6 months)
 6. Note: Presence/absence and quality of mentions on each platform
+
+**Chinese Platforms (for brands targeting China or Chinese-speaking audiences):**
+1. Search: `[brand name] site:douyin.com` — Douyin official account presence
+2. Search: `[brand name] site:xiaohongshu.com` — Xiaohongshu (RED) mentions
+3. Search: `[brand name] site:zhihu.com` — Zhihu answers and articles
+4. Search: `[brand name] site:bilibili.com` — Bilibili videos and UP主
+5. Search: `[brand name] site:weibo.com` — Weibo mentions
+6. Search: `[brand name] site:baidu.com` — Baidu search and Baike
+7. Check WeChat via: `https://weixin.sogou.com/weixin?type=1&query=[brand name]`
+8. Note: Official account presence, KOL/KOC mentions, engagement quality
 
 ### Step 3: Sentiment Assessment
 
