@@ -47,6 +47,22 @@ except ImportError:
     print("ERROR: Required packages not installed. Run: pip install -r requirements.txt")
     sys.exit(1)
 
+# ============================================================
+# CJK FONT SUPPORT
+# ============================================================
+try:
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    # Try to register Arial Unicode MS for CJK character support
+    arial_unicode_path = '/System/Library/Fonts/Supplemental/Arial Unicode.ttf'
+    if os.path.exists(arial_unicode_path):
+        pdfmetrics.registerFont(TTFont('ArialUnicode', arial_unicode_path))
+        CJK_FONT = 'ArialUnicode'
+    else:
+        CJK_FONT = 'Helvetica'
+except Exception:
+    CJK_FONT = 'Helvetica'
+
 
 # ============================================================
 # COLOR PALETTE
@@ -192,7 +208,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='ReportTitle',
-        fontName='Helvetica-Bold',
+        fontName=CJK_FONT,
         fontSize=28,
         textColor=PRIMARY,
         spaceAfter=6,
@@ -201,7 +217,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='ReportSubtitle',
-        fontName='Helvetica',
+        fontName=CJK_FONT,
         fontSize=14,
         textColor=TEXT_SECONDARY,
         spaceAfter=20,
@@ -210,7 +226,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='SectionHeader',
-        fontName='Helvetica-Bold',
+        fontName=CJK_FONT,
         fontSize=18,
         textColor=PRIMARY,
         spaceBefore=20,
@@ -220,7 +236,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='SubHeader',
-        fontName='Helvetica-Bold',
+        fontName=CJK_FONT,
         fontSize=13,
         textColor=ACCENT,
         spaceBefore=14,
@@ -230,7 +246,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='BodyText_Custom',
-        fontName='Helvetica',
+        fontName=CJK_FONT,
         fontSize=10,
         textColor=TEXT_PRIMARY,
         spaceBefore=4,
@@ -241,7 +257,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='SmallText',
-        fontName='Helvetica',
+        fontName=CJK_FONT,
         fontSize=8,
         textColor=TEXT_SECONDARY,
         spaceBefore=2,
@@ -250,7 +266,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='ScoreLabel',
-        fontName='Helvetica-Bold',
+        fontName=CJK_FONT,
         fontSize=36,
         textColor=PRIMARY,
         alignment=TA_CENTER,
@@ -258,7 +274,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='HighlightBox',
-        fontName='Helvetica',
+        fontName=CJK_FONT,
         fontSize=10,
         textColor=TEXT_PRIMARY,
         backColor=LIGHT_BG,
@@ -270,7 +286,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='CriticalFinding',
-        fontName='Helvetica-Bold',
+        fontName=CJK_FONT,
         fontSize=10,
         textColor=DANGER,
         spaceBefore=4,
@@ -279,7 +295,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='Recommendation',
-        fontName='Helvetica',
+        fontName=CJK_FONT,
         fontSize=10,
         textColor=TEXT_PRIMARY,
         leftIndent=15,
@@ -291,7 +307,7 @@ def build_styles():
 
     styles.add(ParagraphStyle(
         name='Footer',
-        fontName='Helvetica',
+        fontName=CJK_FONT,
         fontSize=8,
         textColor=TEXT_SECONDARY,
         alignment=TA_CENTER,
@@ -568,27 +584,27 @@ def generate_report(data, output_path="GEO-REPORT.pdf"):
     if crawler_access:
         # Use Paragraph objects for text wrapping in cells
         cell_style = ParagraphStyle(
-            'CrawlerCell', fontName='Helvetica', fontSize=9,
+            'CrawlerCell', fontName=CJK_FONT, fontSize=9,
             textColor=TEXT_PRIMARY, leading=12,
         )
         header_cell_style = ParagraphStyle(
-            'CrawlerHeaderCell', fontName='Helvetica-Bold', fontSize=9,
+            'CrawlerHeaderCell', fontName=CJK_FONT, fontSize=9,
             textColor=WHITE, leading=12,
         )
         status_style_allowed = ParagraphStyle(
-            'StatusAllowed', fontName='Helvetica-Bold', fontSize=9,
+            'StatusAllowed', fontName=CJK_FONT, fontSize=9,
             textColor=SUCCESS, leading=12,
         )
         status_style_blocked = ParagraphStyle(
-            'StatusBlocked', fontName='Helvetica-Bold', fontSize=9,
+            'StatusBlocked', fontName=CJK_FONT, fontSize=9,
             textColor=DANGER, leading=12,
         )
         status_style_restricted = ParagraphStyle(
-            'StatusRestricted', fontName='Helvetica-Bold', fontSize=9,
+            'StatusRestricted', fontName=CJK_FONT, fontSize=9,
             textColor=WARNING, leading=12,
         )
         status_style_default = ParagraphStyle(
-            'StatusDefault', fontName='Helvetica', fontSize=9,
+            'StatusDefault', fontName=CJK_FONT, fontSize=9,
             textColor=TEXT_PRIMARY, leading=12,
         )
 
@@ -637,6 +653,155 @@ def generate_report(data, output_path="GEO-REPORT.pdf"):
             "<i>Run /geo crawlers to populate this section with AI crawler access data.</i>",
             styles['BodyText_Custom']
         ))
+
+    elements.append(PageBreak())
+
+    # ============================================================
+    # BRAND AUTHORITY SIGNALS
+    # ============================================================
+    elements.append(Paragraph("Brand Authority Signals", styles['SectionHeader']))
+    elements.append(HRFlowable(width="100%", thickness=1, color=ACCENT, spaceAfter=12))
+
+    # International Platforms
+    international_platforms = data.get("international_platforms", {})
+    chinese_platforms = data.get("chinese_platforms", {})
+
+    if international_platforms or chinese_platforms:
+        # International Platforms Table
+        elements.append(Paragraph("International Platforms", styles['SubHeader']))
+        elements.append(Paragraph(
+            "Strong international presence across major platforms.",
+            styles['SmallText']
+        ))
+        elements.append(Spacer(1, 8))
+
+        if international_platforms:
+            int_cell_style = ParagraphStyle('IntCell', fontName=CJK_FONT, fontSize=9,
+                textColor=TEXT_PRIMARY, leading=12)
+            int_header_style = ParagraphStyle('IntHeader', fontName=CJK_FONT, fontSize=9,
+                textColor=WHITE, leading=12)
+            present_style = ParagraphStyle('Present', fontName=CJK_FONT, fontSize=9,
+                textColor=SUCCESS, leading=12)
+            absent_style = ParagraphStyle('Absent', fontName=CJK_FONT, fontSize=9,
+                textColor=DANGER, leading=12)
+
+            int_data = [[
+                Paragraph("Platform", int_header_style),
+                Paragraph("Handle/URL", int_header_style),
+                Paragraph("Status", int_header_style),
+            ]]
+            for platform, info in international_platforms.items():
+                if isinstance(info, dict):
+                    present = info.get("present", False)
+                    status = "Present" if present else "Not Found"
+                    handle = info.get("handle", info.get("url", ""))
+                    s_style = present_style if present else absent_style
+                    int_data.append([
+                        Paragraph(platform, int_cell_style),
+                        Paragraph(str(handle), int_cell_style),
+                        Paragraph(status, s_style),
+                    ])
+                else:
+                    int_data.append([
+                        Paragraph(platform, int_cell_style),
+                        Paragraph(str(info), int_cell_style),
+                        Paragraph("Present" if info else "Not Found",
+                                  present_style if info else absent_style),
+                    ])
+
+            int_table = Table(int_data, colWidths=[100, 200, 80])
+            int_style = make_table_style()
+            int_style.add('BACKGROUND', (0, 0), (-1, 0), ACCENT)
+            int_style.add('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+            int_table.setStyle(int_style)
+            elements.append(int_table)
+
+        elements.append(Spacer(1, 16))
+
+        # Chinese Platforms Table
+        elements.append(Paragraph("Chinese Media Platforms (cn-media=true)", styles['SubHeader']))
+        elements.append(Paragraph(
+            "Domestic platform presence for Chinese AI search visibility.",
+            styles['SmallText']
+        ))
+        elements.append(Spacer(1, 8))
+
+        if chinese_platforms:
+            cn_cell_style = ParagraphStyle('CNCell', fontName=CJK_FONT, fontSize=9,
+                textColor=TEXT_PRIMARY, leading=12)
+            cn_header_style = ParagraphStyle('CNHeader', fontName=CJK_FONT, fontSize=9,
+                textColor=WHITE, leading=12)
+            present_style = ParagraphStyle('Present', fontName=CJK_FONT, fontSize=9,
+                textColor=SUCCESS, leading=12)
+            absent_style = ParagraphStyle('Absent', fontName=CJK_FONT, fontSize=9,
+                textColor=DANGER, leading=12)
+            indirect_style = ParagraphStyle('Indirect', fontName=CJK_FONT, fontSize=9,
+                textColor=WARNING, leading=12)
+
+            cn_data = [[
+                Paragraph("Platform", cn_header_style),
+                Paragraph("Status", cn_header_style),
+                Paragraph("Notes", cn_header_style),
+            ]]
+            present_count = 0
+            for platform, info in chinese_platforms.items():
+                if isinstance(info, dict):
+                    present = info.get("present", False)
+                    status_text = info.get("status", "Unknown")
+                    if present:
+                        present_count += 1
+                        status_upper = status_text.upper()
+                        if "INDIRECT" in status_upper:
+                            s_style = indirect_style
+                        else:
+                            s_style = present_style
+                        status_display = f"Present - {status_text}"
+                    else:
+                        s_style = absent_style
+                        status_display = f"Not Found - {status_text}"
+                    cn_data.append([
+                        Paragraph(platform, cn_cell_style),
+                        Paragraph(status_display, s_style),
+                        Paragraph(info.get("notes", ""), cn_cell_style),
+                    ])
+                else:
+                    cn_data.append([
+                        Paragraph(platform, cn_cell_style),
+                        Paragraph("Present" if info else "Not Found",
+                                  present_style if info else absent_style),
+                        Paragraph("", cn_cell_style),
+                    ])
+                    if info:
+                        present_count += 1
+
+            cn_table = Table(cn_data, colWidths=[100, 160, 220])
+            cn_style = make_table_style()
+            cn_style.add('BACKGROUND', (0, 0), (-1, 0), ACCENT)
+            cn_style.add('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+            cn_table.setStyle(cn_style)
+            elements.append(cn_table)
+
+            elements.append(Spacer(1, 12))
+            total_cn = len(chinese_platforms)
+            elements.append(Paragraph(
+                f"<b>Chinese Platform Coverage: {present_count}/{total_cn}</b>",
+                styles['BodyText_Custom']
+            ))
+        else:
+            elements.append(Paragraph(
+                "<i>Chinese platform data not available. Run /geo audit with cn-media=true to scan.</i>",
+                styles['BodyText_Custom']
+            ))
+    else:
+        # Use brand_findings if available
+        if brand_findings:
+            for key, value in brand_findings.items():
+                elements.append(Paragraph(f"<b>{key}:</b> {value}", styles['BodyText_Custom']))
+        else:
+            elements.append(Paragraph(
+                "<i>Run /geo brands to populate brand authority data.</i>",
+                styles['BodyText_Custom']
+            ))
 
     elements.append(PageBreak())
 

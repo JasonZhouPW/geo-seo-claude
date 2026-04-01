@@ -1,0 +1,130 @@
+{
+  "url": "https://ont.io",
+  "brand_name": "Ontology",
+  "date": "2026-04-01",
+  "access_method": "Proxy (socks5://127.0.0.1:12377)",
+  "geo_score": 58,
+  "business_type": "Blockchain / Web3 / SaaS",
+  "scores": {
+    "ai_citability": 58,
+    "brand_authority": 65,
+    "content_eeat": 62,
+    "technical": 68,
+    "schema": 25,
+    "platform_optimization": 58
+  },
+  "platforms": {
+    "Google AI Overviews": 58,
+    "ChatGPT": 55,
+    "Perplexity": 60,
+    "Google Search": 65,
+    "Chinese AI": 15
+  },
+  "international_platforms": {
+    "Twitter": {"present": true, "handle": "@OntologyNetwork"},
+    "Facebook": {"present": true, "handle": "ONTnetwork"},
+    "LinkedIn": {"present": true, "handle": "Ontology-Network-Official"},
+    "Medium": {"present": true, "handle": "@ontologynetwork"},
+    "Reddit": {"present": true, "handle": "r/OntologyNetwork"},
+    "YouTube": {"present": true, "handle": "UCXzLZJgDglAWRU0b2GOa7pA"},
+    "GitHub": {"present": true, "handle": "github.com/ontio"},
+    "Discord": {"present": true, "handle": "discord.gg/P3U7pf5G"},
+    "Telegram": {"present": true, "handle": "@OntologyAnnouncements"}
+  },
+  "chinese_platforms": {
+    "WeChat/微信": {"present": false, "status": "No official account", "notes": ""},
+    "Weibo/微博": {"present": false, "status": "No official account", "notes": ""},
+    "Zhihu/知乎": {"present": false, "status": "No official org page", "notes": ""},
+    "Bilibili/哔哩": {"present": false, "status": "No official channel", "notes": ""},
+    "Douyin/抖音": {"present": false, "status": "No official account", "notes": ""},
+    "Baidu/百度": {"present": false, "status": "Baike blocked", "notes": "Baidu safety verification"},
+    "LINE": {"present": true, "status": "Indirect", "notes": "lin.ee short link found"},
+    "QQ": {"present": false, "status": "No official verification", "notes": ""}
+  },
+  "crawlers": [
+    {"name": "GPTBot", "allowed": true},
+    {"name": "CCBot", "allowed": true},
+    {"name": "Google-Extended", "allowed": true},
+    {"name": "PerplexityBot", "allowed": true},
+    {"name": "anthropic-agent", "allowed": true}
+  ],
+  "crawler_access": {
+    "robots_txt_ai_crawlers": "Allowed - All AI crawlers permitted",
+    "llms_txt": "404 Error - File returns HTML 404",
+    "geo_blocking": "Yes - Site blocks non-proxy users"
+  },
+  "findings": [
+    {"severity": "critical", "title": "llms.txt returns 404", "description": "The /llms.txt link exists in <head> but returns HTML 404 instead of content"},
+    {"severity": "critical", "title": "No JSON-LD structured data", "description": "Missing Organization, WebSite, and SoftwareApplication schemas"},
+    {"severity": "high", "title": "No Chinese social presence", "description": "0/8 domestic platforms found - WeChat, Weibo, Zhihu, Bilibili, Douyin all missing"},
+    {"severity": "high", "title": "Geo-blocking affects AI crawlers", "description": "Most AI bots see 'Service not available' message"},
+    {"severity": "medium", "title": "No author attribution", "description": "Missing E-E-A-T author signals on homepage"}
+  ],
+  "quick_wins": [
+    "Fix llms.txt endpoint to return actual content",
+    "Add JSON-LD structured data (Organization, WebSite, SoftwareApplication)",
+    "Add Chinese social media presence (WeChat, Weibo, Zhihu)"
+  ],
+  "medium_term": [
+    "Build quotable content with statistics and unique data",
+    "Add FAQPage schema if applicable",
+    "Verify Core Web Vitals with proxy access"
+  ],
+  "strategic": [
+    "Develop Chinese language content strategy",
+    "Build E-E-A-T through author attribution and credentials",
+    "Consider geo-blocking exception for AI crawler user agents"
+  ],
+  "key_passages": [
+    "Powering decentralized identity, reputation, and secure communication for users and builders in Web3.",
+    "1M+ ONT ID Created, 200M+ $ONT Staked, 20%+ Est. Average Staking Yield, 800+ Total Nodes, 8 Years",
+    "ONT powers governance and staking. ONG fuels transactions and smart contract execution."
+  ],
+  "strengths": [
+    "Excellent homepage content with rich statistics",
+    "Strong international social presence (9/9 platforms)",
+    "Comprehensive SEO basics - title, meta, OG, Twitter cards",
+    "Excellent hreflang - 9 language variants",
+    "AI-friendly robots.txt",
+    "Vite SSR rendering"
+  ],
+  "critical_issues": [
+    "llms.txt returns 404",
+    "No JSON-LD structured data",
+    "No Chinese social presence",
+    "Geo-blocking for AI crawlers",
+    "No author attribution"
+  ],
+  "schema_findings": {
+    "organization": "Not found",
+    "website": "Not found",
+    "softwareapplication": "Not found",
+    "faq": "Not found"
+  },
+  "content_findings": {
+    "title": "Ontology – The Trust Layer for Web3",
+    "meta_description": "Decentralized identity, reputation, and communication tools for Web3.",
+    "unique_data": "1M+ ONT ID, 200M+ staked, 20%+ yield, 800+ nodes, 8 years",
+    "author_signals": "No visible author attribution"
+  },
+  "technical_findings": {
+    "rendering": "Vite SSR",
+    "https": "Enabled",
+    "hreflang": "9 language variants",
+    "sitemap": "4 sitemaps with hreflang",
+    "mobile": "Responsive"
+  },
+  "brand_findings": {
+    "international": "9/9 platforms present",
+    "chinese": "0/8 platforms present",
+    "note": "Strong international but weak Chinese presence"
+  },
+  "score_breakdown": {
+    "ai_citability": {"raw": 58, "weight": 0.25, "points": 14.5},
+    "brand_authority": {"raw": 65, "weight": 0.20, "points": 13.0},
+    "content_quality": {"raw": 62, "weight": 0.20, "points": 12.4},
+    "technical": {"raw": 68, "weight": 0.15, "points": 10.2},
+    "structured_data": {"raw": 25, "weight": 0.10, "points": 2.5},
+    "platform_optimization": {"raw": 58, "weight": 0.10, "points": 5.8}
+  }
+}

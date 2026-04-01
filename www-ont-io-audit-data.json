@@ -1,0 +1,133 @@
+{
+  "url": "https://www.ont.io",
+  "brand_name": "Ontology",
+  "date": "2026-04-01",
+  "access_method": "Proxy (socks5://127.0.0.1:12377)",
+  "geo_score": 72,
+  "business_type": "Blockchain / Web3 / SaaS",
+  "cn_media": false,
+  "scores": {
+    "ai_citability": 68,
+    "brand_authority": 75,
+    "content_eeat": 62,
+    "technical": 72,
+    "schema": 70,
+    "platform_optimization": 70
+  },
+  "platforms": {
+    "Google AI Overviews": 72,
+    "ChatGPT": 68,
+    "Perplexity": 70,
+    "Google Search": 68,
+    "Bing Copilot": 75,
+    "Google Gemini": 65
+  },
+  "international_platforms": {
+    "Twitter": {"present": true, "handle": "@OntologyNetwork"},
+    "Facebook": {"present": true, "handle": "ONTnetwork"},
+    "LinkedIn": {"present": true, "handle": "Ontology-Network-Official"},
+    "Medium": {"present": true, "handle": "@ontologynetwork"},
+    "Reddit": {"present": true, "handle": "r/OntologyNetwork"},
+    "YouTube": {"present": true, "handle": "UCXzLZJgDglAWRU0b2GOa7pA"},
+    "GitHub": {"present": true, "handle": "github.com/ontio"},
+    "Discord": {"present": true, "handle": "discord.gg/P3U7pf5G"},
+    "Telegram": {"present": true, "handle": "@OntologyAnnouncements"}
+  },
+  "crawlers": [
+    {"name": "GPTBot", "allowed": true},
+    {"name": "OAI-SearchBot", "allowed": true},
+    {"name": "ClaudeBot", "allowed": true},
+    {"name": "PerplexityBot", "allowed": true},
+    {"name": "Google-Extended", "allowed": true},
+    {"name": "CCBot", "allowed": true}
+  ],
+  "crawler_access": {
+    "robots_txt_ai_crawlers": {"status": "Allowed", "platform": "All AI crawlers permitted"},
+    "llms_txt": {"status": "HTTP 200", "platform": "Comprehensive content, excellent quality"},
+    "geo_blocking": {"status": "Restricted", "platform": "Site blocks non-proxy users"}
+  },
+  "findings": [
+    {"severity": "critical", "title": "No Wikipedia article", "description": "Wikipedia absence is #1 authority gap for ChatGPT/Gemini"},
+    {"severity": "high", "title": "No author attribution", "description": "Missing Person schema and visible author bylines"},
+    {"severity": "high", "title": "No publication dates", "description": "No datePublished/dateModified visible on site"},
+    {"severity": "high", "title": "Schema duplicate - ONTO Wallet", "description": "ONTO Wallet declared as both SoftwareApplication AND MobileApplication"},
+    {"severity": "medium", "title": "Missing security headers", "description": "No HSTS, CSP, or X-Frame-Options headers"}
+  ],
+  "quick_wins": [
+    "Create Wikipedia article for Ontology",
+    "Add Person schema for content authors",
+    "Add publication dates to content",
+    "Fix ONTO Wallet schema duplicate"
+  ],
+  "medium_term": [
+    "Add Wikipedia and Wikidata to sameAs",
+    "Expand homepage content depth",
+    "Add msvalidate.01 Bing Webmaster tag",
+    "Implement security headers"
+  ],
+  "strategic": [
+    "Build Wikipedia presence for AI authority",
+    "Develop comprehensive content strategy",
+    "Build E-E-A-T through author attribution"
+  ],
+  "key_passages": [
+    "ONT powers governance and staking. ONG fuels transactions and smart contract execution.",
+    "1M+ ONT ID Created, 200M+ $ONT Staked, 20%+ Est. Average Staking Yield, 800+ Total Nodes, 8 Years",
+    "Powering decentralized identity, reputation, and secure communication for users and builders in Web3."
+  ],
+  "strengths": [
+    "llms.txt returns HTTP 200 with comprehensive content",
+    "8 JSON-LD schemas present (Organization, WebSite, FAQPage, etc.)",
+    "FAQPage schema with 5 directly extractable Q&As",
+    "All AI crawlers allowed in robots.txt",
+    "Vite SSR rendering - AI accessible content",
+    "9/9 international social platforms present",
+    "Rich statistical claims (1M+ IDs, 200M+ staked, 800+ nodes)"
+  ],
+  "critical_issues": [
+    "No Wikipedia article - critical gap for ChatGPT/Gemini",
+    "No author attribution - missing Person schema",
+    "No publication dates",
+    "Schema duplicate - ONTO Wallet type conflict",
+    "Missing security headers"
+  ],
+  "schema_findings": {
+    "organization": "Present - 92/100 - Comprehensive with 10 sameAs links",
+    "website": "Present - 88/100 - With SearchAction",
+    "softwareapplication": "Present - 82/100 - ONT Token",
+    "mobileapplication": "Present - 75/100 - ONTO Wallet (duplicate issue)",
+    "webapplication": "Present - 72-75/100 - Explorer, Node Dashboard",
+    "faq": "Present - 90/100 - 5 Q&As"
+  },
+  "content_findings": {
+    "title": "Ontology – The Trust Layer for Web3",
+    "meta_description": "Decentralized identity, reputation, and communication tools for Web3.",
+    "unique_data": "1M+ ONT ID, 200M+ staked, 20%+ yield, 800+ nodes, 8 years",
+    "author_signals": "No visible author attribution",
+    "publication_dates": "No dates visible",
+    "content_depth": "~600 words - thin for AI extraction"
+  },
+  "technical_findings": {
+    "rendering": "Vite SSR - Full SSR confirmed",
+    "https": "Enabled",
+    "hreflang": "9 language variants",
+    "sitemap": "4 sitemaps with hreflang",
+    "mobile": "Responsive",
+    "hsts": "Missing",
+    "ttfb": "1.3s (above 800ms target)",
+    "cls_risk": "Images missing width/height attributes"
+  },
+  "brand_findings": {
+    "international": "9/9 platforms present",
+    "wikipedia": "No article found",
+    "note": "Strong international presence but missing Wikipedia"
+  },
+  "score_breakdown": {
+    "ai_citability": {"raw": 68, "weight": 0.25, "points": 17.0},
+    "brand_authority": {"raw": 75, "weight": 0.20, "points": 15.0},
+    "content_quality": {"raw": 62, "weight": 0.20, "points": 12.4},
+    "technical": {"raw": 72, "weight": 0.15, "points": 10.8},
+    "structured_data": {"raw": 70, "weight": 0.10, "points": 7.0},
+    "platform_optimization": {"raw": 70, "weight": 0.10, "points": 7.0}
+  }
+}

@@ -23,7 +23,7 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 
 | Command | What It Does |
 |---------|-------------|
-| `/geo audit <url>` | Full GEO + SEO audit with parallel subagents |
+| `/geo audit <url> [has-solution] [cn-media]` | Full GEO + SEO audit with parallel subagents. `has-solution`: false=skip solutions (default), true=include action plan. `cn-media`: true=include Chinese media (default), false=exclude |
 | `/geo page <url>` | Deep single-page GEO analysis |
 | `/geo citability <url>` | Score content for AI citation readiness |
 | `/geo crawlers <url>` | Check AI crawler access (robots.txt analysis) |
@@ -61,7 +61,12 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 
 ## Orchestration Logic
 
-### Full Audit (`/geo audit <url>`)
+### Full Audit (`/geo audit <url> [has-solution] [cn-media]`)
+
+**Parameters:**
+- `url` (required): The website URL to audit
+- `has-solution` (optional, default: `false`): When `false`, the report excludes the "Action Plan" / solutions section. When `true`, includes prioritized recommendations.
+- `cn-media` (optional, default: `true`): When `true`, includes Chinese media platforms in brand mention scanning (WeChat, Weibo, Zhihu, Bilibili, Douyin, Baidu, etc.). When `false`, excludes Chinese media.
 
 **Phase 1: Discovery (Sequential)**
 1. Fetch homepage HTML (curl or WebFetch)
@@ -82,8 +87,8 @@ Launch these 5 subagents simultaneously:
 **Phase 3: Synthesis (Sequential)**
 1. Collect all subagent reports
 2. Calculate composite GEO Score (0-100)
-3. Generate prioritized action plan
-4. Output client-ready report
+3. **If `has-solution=true`**: Generate prioritized action plan
+4. Output client-ready report (solutions section included only when `has-solution=true`)
 
 ### Scoring Methodology
 
@@ -211,8 +216,17 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 ## Quick Start Examples
 
 ```
-# Full GEO audit of a website
+# Full GEO audit (no solutions, include Chinese media - defaults)
 /geo audit https://example.com
+
+# Full GEO audit with action plan
+/geo audit https://example.com has-solution=true
+
+# Full GEO audit without Chinese media
+/geo audit https://example.com cn-media=false
+
+# Full GEO audit with solutions and Chinese media (explicit)
+/geo audit https://example.com has-solution=true cn-media=true
 
 # Check if AI bots can see your site
 /geo crawlers https://example.com
