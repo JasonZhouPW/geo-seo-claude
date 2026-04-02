@@ -188,7 +188,41 @@ Every issue found during the audit is classified by severity:
 
 ## Output Format
 
-Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
+After collecting all audit data, generate reports using the report scripts:
+
+1. Save audit data to `audit-data.json` with this structure:
+```json
+{
+  "url": "[URL]",
+  "brand_name": "[Brand Name]",
+  "date": "[YYYY-MM-DD]",
+  "business_type": "[Type]",
+  "geo_score": [0-100],
+  "scores": {
+    "ai_citability": [0-100],
+    "brand_authority": [0-100],
+    "content_eeat": [0-100],
+    "technical": [0-100],
+    "schema": [0-100],
+    "platform_optimization": [0-100]
+  },
+  "platforms": {...},
+  "findings": [...],
+  "quick_wins": [...],
+  "medium_term": [...],
+  "strategic": [...],
+  "strengths": [...],
+  "schema_findings": {...},
+  "crawler_access": {...},
+  "international_platforms": {...},
+  "cn_platforms": {...}
+}
+```
+
+2. Generate MD report: `python3 generate_md_report.py audit-data.json`
+3. Generate PDF report: `python3 generate_pdf_report.py audit-data.json GEO-REPORT.pdf`
+
+The generated `GEO-REPORT.md` will have the following structure:
 
 ```markdown
 # GEO Audit Report: [Site Name]

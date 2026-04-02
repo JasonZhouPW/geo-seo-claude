@@ -120,7 +120,10 @@ Launch these 5 subagents simultaneously:
 1. Collect all subagent reports
 2. Calculate composite GEO Score (0-100)
 3. **If `has-solution=true`**: Generate prioritized action plan
-4. Output client-ready report (solutions section included only when `has-solution=true`)
+4. Assemble all audit data into a JSON file (`audit-data.json`)
+5. Generate MD report: `python3 generate_md_report.py audit-data.json`
+6. Generate PDF report: `python3 generate_pdf_report.py audit-data.json GEO-REPORT.pdf`
+7. Output both report files to the user
 
 ### Scoring Methodology
 
