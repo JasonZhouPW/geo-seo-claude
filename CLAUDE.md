@@ -62,3 +62,20 @@ python3 -m pytest tests/
 - **Wikipedia API** for brand mention verification uses direct Python requests (not web search).
 - **PDF generation** uses ReportLab - no external PDF service dependency.
 - **CRM/prospect data** stored at `~/.geo-prospects/` (outside this repo).
+
+## Development Workflow
+
+**重要：所有开发修改必须在项目目录下进行，然后同步到 `~/.claude/skills/geo/`，不要直接编辑 `~/.claude` 目录下的文件。**
+
+1. **修改文件**：所有代码、脚本、SKILL.md 等都在 `/Users/jasonzhou/work/other/geo-seo-claude/` 下
+2. **同步部署**：`install.sh` 或手动复制到 `~/.claude/skills/geo/`
+3. **禁止直接编辑**：不直接修改 `~/.claude/skills/geo/` 下的文件（仅供验证同步结果用）
+
+**目录对应关系：**
+```
+geo-seo-claude/           →  ~/.claude/skills/geo/
+├── geo/SKILL.md          →  SKILL.md
+├── skills/               →  skills/
+├── agents/               →  agents/
+└── scripts/              →  scripts/
+```
