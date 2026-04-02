@@ -46,6 +46,14 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     schema_score = scores.get("schema", 0)
     platform_optimization = scores.get("platform_optimization", 0)
 
+    # GEO Impression Score
+    geo_impression = data.get("geo_impression_score", {})
+    impression_score = int(geo_impression.get("combined_score", 0) * 100) if geo_impression else 0
+    impression_position = geo_impression.get("position_score", 0)
+    impression_word_count = geo_impression.get("word_count_score", 0)
+    citation_count = geo_impression.get("citation_count", 0)
+    impression_recommendations = geo_impression.get("recommendations", [])
+
     # Get score label
     def get_score_label(score):
         if score >= 85: return "Excellent"
@@ -87,6 +95,8 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append(f"| Technical Foundations | {technical}/100 | 🟢 Good |")
     md.append(f"| Structured Data | {schema_score}/100 | 🟢 Good |")
     md.append(f"| Platform Optimization | {platform_optimization}/100 | 🟢 Good |")
+    if impression_score > 0:
+        md.append(f"| **GEO Impression Score** | **{impression_score}/100** | 🟢 Measured |")
     md.append("")
     md.append("---")
     md.append("")
@@ -97,15 +107,29 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append("```")
     md.append(f"Overall GEO Score: {geo_score}/100")
     md.append("")
-    md.append(f"├── AI Citability & Visibility  [25%] → {ai_citability}/100 ({ai_citability * 0.25:.1f} pts)")
-    md.append(f"├── Brand Authority Signals      [20%] → {brand_authority}/100 ({brand_authority * 0.20:.1f} pts)")
-    md.append(f"├── Content Quality & E-E-A-T  [20%] → {content_eeat}/100 ({content_eeat * 0.20:.1f} pts)")
-    md.append(f"├── Technical Foundations       [15%] → {technical}/100 ({technical * 0.15:.1f} pts)")
-    md.append(f"├── Structured Data           [10%] → {schema_score}/100 ({schema_score * 0.10:.1f} pts)")
-    md.append(f"└── Platform Optimization    [10%] → {platform_optimization}/100 ({platform_optimization * 0.10:.1f} pts)")
-    md.append(f"                                        ─────────────")
-    total = ai_citability*0.25 + brand_authority*0.20 + content_eeat*0.20 + technical*0.15 + schema_score*0.10 + platform_optimization*0.10
-    md.append(f"                                        Total: {total:.1f} → {geo_score}/100")
+
+    if impression_score > 0:
+        # Updated weights with GEO Impression Score
+        md.append(f"├── AI Citability & Visibility  [22%] → {ai_citability}/100 ({ai_citability * 0.22:.1f} pts)")
+        md.append(f"├── Brand Authority Signals      [18%] → {brand_authority}/100 ({brand_authority * 0.18:.1f} pts)")
+        md.append(f"├── Content Quality & E-E-A-T  [18%] → {content_eeat}/100 ({content_eeat * 0.18:.1f} pts)")
+        md.append(f"├── Technical Foundations       [12%] → {technical}/100 ({technical * 0.12:.1f} pts)")
+        md.append(f"├── Structured Data            [8%] → {schema_score}/100 ({schema_score * 0.08:.1f} pts)")
+        md.append(f"├── Platform Optimization        [8%] → {platform_optimization}/100 ({platform_optimization * 0.08:.1f} pts)")
+        md.append(f"└── GEO Impression Score      [14%] → {impression_score}/100 ({impression_score * 0.14:.1f} pts)")
+        md.append(f"                                        ─────────────")
+        total = ai_citability*0.22 + brand_authority*0.18 + content_eeat*0.18 + technical*0.12 + schema_score*0.08 + platform_optimization*0.08 + impression_score*0.14
+        md.append(f"                                        Total: {total:.1f} → {geo_score}/100")
+    else:
+        md.append(f"├── AI Citability & Visibility  [25%] → {ai_citability}/100 ({ai_citability * 0.25:.1f} pts)")
+        md.append(f"├── Brand Authority Signals      [20%] → {brand_authority}/100 ({brand_authority * 0.20:.1f} pts)")
+        md.append(f"├── Content Quality & E-E-A-T  [20%] → {content_eeat}/100 ({content_eeat * 0.20:.1f} pts)")
+        md.append(f"├── Technical Foundations       [15%] → {technical}/100 ({technical * 0.15:.1f} pts)")
+        md.append(f"├── Structured Data           [10%] → {schema_score}/100 ({schema_score * 0.10:.1f} pts)")
+        md.append(f"└── Platform Optimization    [10%] → {platform_optimization}/100 ({platform_optimization * 0.10:.1f} pts)")
+        md.append(f"                                        ─────────────")
+        total = ai_citability*0.25 + brand_authority*0.20 + content_eeat*0.20 + technical*0.15 + schema_score*0.10 + platform_optimization*0.10
+        md.append(f"                                        Total: {total:.1f} → {geo_score}/100")
     md.append("```")
     md.append("")
 
@@ -206,6 +230,22 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
         status = "Good" if score >= 70 else "Moderate"
         md.append(f"| **{platform}** | {score}/100 | 🟢 {status} |")
     md.append("")
+
+    # GEO Impression Score Section
+    if impression_score > 0:
+        md.append("### 7. GEO Impression Score — Measured 🟢")
+        md.append("")
+        md.append("| Metric | Value | Description |")
+        md.append("|--------|-------|-------------|")
+        md.append(f"| **Combined Score** | **{impression_score}/100** | Overall visibility in LLM-generated answers |")
+        md.append(f"| Position Score | {int(impression_position * 100)}/100 | Early citations score higher |")
+        md.append(f"| Word Count Score | {int(impression_word_count * 100)}/100 | Substantive content with specific details |")
+        md.append(f"| Citation Count | {citation_count} | Number of times source was cited |")
+        md.append("")
+        md.append("**Recommendations:**")
+        for rec in impression_recommendations[:3]:
+            md.append(f"- {rec}")
+        md.append("")
 
     # Action Plan
     md.append("## Action Plan")

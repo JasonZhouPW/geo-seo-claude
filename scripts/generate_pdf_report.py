@@ -451,6 +451,14 @@ def draw_page2(c, data):
     schema_score = scores.get("schema", 0)
     platform_opt = scores.get("platform_optimization", 0)
 
+    # GEO Impression Score
+    geo_impression = data.get("geo_impression_score", {})
+    impression_score = int(geo_impression.get("combined_score", 0) * 100) if geo_impression else 0
+    impression_position = geo_impression.get("position_score", 0)
+    impression_word_count = geo_impression.get("word_count_score", 0)
+    citation_count = geo_impression.get("citation_count", 0)
+    impression_recommendations = geo_impression.get("recommendations", [])
+
     y = H - 20*mm
 
     # Page header strip
@@ -472,24 +480,48 @@ def draw_page2(c, data):
 
     # Calculate weighted points
     score_breakdown = data.get("score_breakdown", {})
-    if score_breakdown:
-        comps_data = [
-            ("AI Citability & Visibility",  ai_citability, 25, score_breakdown.get("ai_citability", {}).get("points", ai_citability * 0.25)),
-            ("Brand Authority Signals",     brand_authority, 20, score_breakdown.get("brand_authority", {}).get("points", brand_authority * 0.20)),
-            ("Content Quality & E-E-A-T",   content_eeat, 20, score_breakdown.get("content_quality", {}).get("points", content_eeat * 0.20)),
-            ("Technical Foundations",       technical, 15, score_breakdown.get("technical", {}).get("points", technical * 0.15)),
-            ("Structured Data",             schema_score, 10, score_breakdown.get("structured_data", {}).get("points", schema_score * 0.10)),
-            ("Platform Optimization",       platform_opt, 10, score_breakdown.get("platform_optimization", {}).get("points", platform_opt * 0.10)),
-        ]
+
+    if impression_score > 0:
+        # Updated weights with GEO Impression Score (14%)
+        if score_breakdown:
+            comps_data = [
+                ("AI Citability & Visibility",  ai_citability, 22, score_breakdown.get("ai_citability", {}).get("points", ai_citability * 0.22)),
+                ("Brand Authority Signals",     brand_authority, 18, score_breakdown.get("brand_authority", {}).get("points", brand_authority * 0.18)),
+                ("Content Quality & E-E-A-T",   content_eeat, 18, score_breakdown.get("content_quality", {}).get("points", content_eeat * 0.18)),
+                ("Technical Foundations",       technical, 12, score_breakdown.get("technical", {}).get("points", technical * 0.12)),
+                ("Structured Data",             schema_score, 8, score_breakdown.get("structured_data", {}).get("points", schema_score * 0.08)),
+                ("Platform Optimization",       platform_opt, 8, score_breakdown.get("platform_optimization", {}).get("points", platform_opt * 0.08)),
+                ("GEO Impression Score",        impression_score, 14, impression_score * 0.14),
+            ]
+        else:
+            comps_data = [
+                ("AI Citability & Visibility",  ai_citability, 22, ai_citability * 0.22),
+                ("Brand Authority Signals",     brand_authority, 18, brand_authority * 0.18),
+                ("Content Quality & E-E-A-T",   content_eeat, 18, content_eeat * 0.18),
+                ("Technical Foundations",       technical, 12, technical * 0.12),
+                ("Structured Data",             schema_score, 8, schema_score * 0.08),
+                ("Platform Optimization",       platform_opt, 8, platform_opt * 0.08),
+                ("GEO Impression Score",        impression_score, 14, impression_score * 0.14),
+            ]
     else:
-        comps_data = [
-            ("AI Citability & Visibility",  ai_citability, 25, ai_citability * 0.25),
-            ("Brand Authority Signals",     brand_authority, 20, brand_authority * 0.20),
-            ("Content Quality & E-E-A-T",   content_eeat, 20, content_eeat * 0.20),
-            ("Technical Foundations",       technical, 15, technical * 0.15),
-            ("Structured Data",             schema_score, 10, schema_score * 0.10),
-            ("Platform Optimization",       platform_opt, 10, platform_opt * 0.10),
-        ]
+        if score_breakdown:
+            comps_data = [
+                ("AI Citability & Visibility",  ai_citability, 25, score_breakdown.get("ai_citability", {}).get("points", ai_citability * 0.25)),
+                ("Brand Authority Signals",     brand_authority, 20, score_breakdown.get("brand_authority", {}).get("points", brand_authority * 0.20)),
+                ("Content Quality & E-E-A-T",   content_eeat, 20, score_breakdown.get("content_quality", {}).get("points", content_eeat * 0.20)),
+                ("Technical Foundations",       technical, 15, score_breakdown.get("technical", {}).get("points", technical * 0.15)),
+                ("Structured Data",             schema_score, 10, score_breakdown.get("structured_data", {}).get("points", schema_score * 0.10)),
+                ("Platform Optimization",       platform_opt, 10, score_breakdown.get("platform_optimization", {}).get("points", platform_opt * 0.10)),
+            ]
+        else:
+            comps_data = [
+                ("AI Citability & Visibility",  ai_citability, 25, ai_citability * 0.25),
+                ("Brand Authority Signals",     brand_authority, 20, brand_authority * 0.20),
+                ("Content Quality & E-E-A-T",   content_eeat, 20, content_eeat * 0.20),
+                ("Technical Foundations",       technical, 15, technical * 0.15),
+                ("Structured Data",             schema_score, 10, schema_score * 0.10),
+                ("Platform Optimization",       platform_opt, 10, platform_opt * 0.10),
+            ]
 
     comps = []
     for name, score, wt, weighted in comps_data:
@@ -597,6 +629,64 @@ def draw_page2(c, data):
         c.restoreState()
         status = get_score_label(sc)
         status_pill(c, cx + card_w - 58, cy + 16, status, w=50, h=12)
+
+    # ── GEO IMPRESSION SCORE ────────────────────────────────────────────────
+    if impression_score > 0:
+        y -= 10
+        y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
+        y -= 14
+
+        # Score card
+        card_w = W - 36*mm
+        draw_rect(c, 18*mm, y - 50, card_w, 46, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
+        y -= 8
+
+        # Combined score
+        c.saveState()
+        c.setFont("Helvetica-Bold", 28)
+        c.setFillColor(GREEN)
+        c.drawString(24*mm, y - 20, f"{impression_score}")
+        c.setFont("Helvetica", 14)
+        c.setFillColor(TEXT_MID)
+        c.drawString(24*mm + 35, y - 12, "/100")
+        c.setFont("Helvetica-Bold", 10)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(24*mm + 70, y - 10, "Combined Impression Score")
+        c.restoreState()
+
+        # Metrics
+        metrics_x = 110*mm
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(metrics_x, y - 8, "Position Score:")
+        c.drawString(metrics_x, y - 20, "Word Count Score:")
+        c.drawString(metrics_x, y - 32, "Citations:")
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(metrics_x + 35, y - 8, f"{int(impression_position * 100)}/100")
+        c.drawString(metrics_x + 35, y - 20, f"{int(impression_word_count * 100)}/100")
+        c.drawString(metrics_x + 35, y - 32, f"{citation_count}")
+        c.restoreState()
+
+        y -= 58
+
+        # Recommendations
+        if impression_recommendations:
+            y -= 4
+            c.saveState()
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(TEXT_DARK)
+            c.drawString(18*mm, y, "Recommendations:")
+            c.restoreState()
+            y -= 12
+            for rec in impression_recommendations[:2]:
+                c.saveState()
+                c.setFont("Helvetica", 7.5)
+                c.setFillColor(TEXT_MID)
+                c.drawString(22*mm, y, f"• {rec[:80]}")
+                c.restoreState()
+                y -= 10
 
     page_footer(c, 2, 5, url, brand_name)
     c.showPage()
