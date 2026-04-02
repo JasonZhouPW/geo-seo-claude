@@ -640,54 +640,66 @@ def draw_page2(c, data):
         y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
         y -= 14
 
-        # Score card
-        card_w = W - 36*mm
-        card_h = 58
-        draw_rect(c, 18*mm, y - card_h, card_w, card_h, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
-        y -= 10
+        # Three metric cards in a row
+        metrics = [
+            ("Position Score", int(impression_position * 100)),
+            ("Word Count", int(impression_word_count * 100)),
+            ("Citations", citation_count),
+        ]
 
-        # Combined score
+        # Card dimensions
+        card_w = (W - 36*mm - 12) / 3  # 3 equal cards with gaps
+        card_h = 36
+
+        for i, (label, val) in enumerate(metrics):
+            cx = 18*mm + i * (card_w + 6)
+            cy = y - card_h
+
+            # Draw card background
+            draw_rect(c, cx, cy, card_w, card_h, fill=WHITE, stroke=BORDER, radius=5, lw=0.6)
+
+            # Label at top
+            c.saveState()
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(TEXT_DARK)
+            c.drawCentredString(cx + card_w/2, cy + card_h - 12, label)
+            c.restoreState()
+
+            # Value in center (large)
+            c.saveState()
+            c.setFont("Helvetica-Bold", 16)
+            c.setFillColor(GREEN)
+            c.drawCentredString(cx + card_w/2, cy + 8, f"{val}")
+            c.restoreState()
+
+            # Suffix for scores (not for citations)
+            if i < 2:
+                c.saveState()
+                c.setFont("Helvetica", 8)
+                c.setFillColor(TEXT_MID)
+                c.drawCentredString(cx + card_w/2, cy + 0, "/100")
+                c.restoreState()
+
+        y -= card_h + 15
+
+        # Combined score badge
+        badge_w = 80
+        badge_h = 24
+        draw_rect(c, 18*mm, y - badge_h, badge_w, badge_h, fill=GREEN, radius=4)
         c.saveState()
-        c.setFont("Helvetica-Bold", 28)
-        c.setFillColor(GREEN)
-        c.drawString(24*mm, y - 20, f"{impression_score}")
-        c.setFont("Helvetica", 14)
-        c.setFillColor(TEXT_MID)
-        c.drawString(24*mm + 35, y - 12, "/100")
-        c.setFont("Helvetica-Bold", 10)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(24*mm + 70, y - 10, "Combined Impression Score")
+        c.setFont("Helvetica-Bold", 12)
+        c.setFillColor(WHITE)
+        c.drawCentredString(18*mm + badge_w/2, y - badge_h/2 + 2, f"{impression_score}/100")
         c.restoreState()
 
-        # Metrics - table layout with separate columns
-        col1_x = 112*mm   # Label column
-        col2_x = 156*mm   # Value column
-        row_h = 13        # Height per row
+        # Combined label
         c.saveState()
-        # Row 1: Position Score
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y, "Position Score:")
-        c.setFont("Helvetica", 8)
+        c.setFont("Helvetica", 9)
         c.setFillColor(TEXT_MID)
-        c.drawString(col2_x, y, f"{int(impression_position * 100)}/100")
-        # Row 2: Word Count
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y - row_h, "Word Count:")
-        c.setFont("Helvetica", 8)
-        c.setFillColor(TEXT_MID)
-        c.drawString(col2_x, y - row_h, f"{int(impression_word_count * 100)}/100")
-        # Row 3: Citations
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y - row_h * 2, "Citations:")
-        c.setFont("Helvetica", 8)
-        c.setFillColor(TEXT_MID)
-        c.drawString(col2_x, y - row_h * 2, f"{citation_count}")
+        c.drawString(18*mm + badge_w + 10, y - badge_h/2 + 4, "Combined Impression Score")
         c.restoreState()
 
-        y -= 66
+        y -= badge_h + 20
 
         # Recommendations
         if impression_recommendations:
