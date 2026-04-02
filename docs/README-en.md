@@ -23,25 +23,74 @@
 
 - Claude Code CLI (`/help` to install)
 - Python 3.8+ for report generation scripts
+- Git for cloning the repository
 - Internet access for web scraping
 
-### Setup
+### Option 1: Automated Installer (Recommended)
 
-1. **Install the skill** (automatic via Claude Code):
+The easiest way to install is using the `install.sh` script:
 
-   When you first use a `/geo` command, Claude Code will automatically load the skill from `~/.claude/skills/geo/`.
+```bash
+# Download and run the installer
+curl -sL https://raw.githubusercontent.com/zubair-trabzada/geo-seo-claude/main/install.sh | bash
 
-2. **Verify installation**:
+# Or if you already have the repo locally
+./install.sh
+```
 
+The installer will:
+- Check prerequisites (Git, Python 3.8+, Claude Code)
+- Create required directories
+- Install main skill to `~/.claude/skills/geo/`
+- Install 13 sub-skills to `~/.claude/skills/`
+- Install 5 subagents to `~/.claude/agents/`
+- Install utility scripts
+- Install schema templates
+- Install Python dependencies
+- Optionally install Playwright for screenshots
+- Verify installation
+
+### Option 2: Manual Installation
+
+1. **Clone or copy the repository** to your local machine.
+
+2. **Run the installer**:
+
+   ```bash
+   ./install.sh
    ```
-   /geo help
+
+   This handles all file placement and dependency installation automatically.
+
+3. **Or manually copy files**:
+
+   ```bash
+   # Create directories
+   mkdir -p ~/.claude/skills/geo
+   mkdir -p ~/.claude/agents
+
+   # Copy skill files
+   cp geo/* ~/.claude/skills/geo/
+   cp -r skills/*/ ~/.claude/skills/
+   cp agents/*.md ~/.claude/agents/
+   cp scripts/* ~/.claude/skills/geo/scripts/
    ```
 
-3. **Install Python dependencies** (optional, for PDF reports):
+4. **Install Python dependencies**:
 
    ```bash
    pip install reportlab Pillow requests beautifulsoup4
    ```
+
+### Verify Installation
+
+After installation, verify it works:
+
+```
+/geo help
+```
+
+You should see the GEO-SEO tool help menu with all available commands.
 
 ---
 

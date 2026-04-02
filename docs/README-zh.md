@@ -23,25 +23,74 @@
 
 - Claude Code CLI（输入 `/help` 安装）
 - Python 3.8+（用于生成报告）
+- Git（用于克隆仓库）
 - 网络连接（用于抓取网页）
 
-### 设置
+### 方式一：自动化安装（推荐）
 
-1. **安装技能**（Claude Code 自动完成）：
+最简单的方式是使用 `install.sh` 脚本：
 
-   首次使用 `/geo` 命令时，Claude Code 会自动从 `~/.claude/skills/geo/` 加载技能。
+```bash
+# 下载并运行安装脚本
+curl -sL https://raw.githubusercontent.com/zubair-trabzada/geo-seo-claude/main/install.sh | bash
 
-2. **验证安装**：
+# 或者如果已有本地仓库
+./install.sh
+```
 
+安装程序将自动完成：
+- 检查环境前提条件（Git、Python 3.8+、Claude Code）
+- 创建所需目录
+- 安装主技能到 `~/.claude/skills/geo/`
+- 安装 13 个子技能到 `~/.claude/skills/`
+- 安装 5 个子代理到 `~/.claude/agents/`
+- 安装工具脚本
+- 安装架构模板
+- 安装 Python 依赖
+- 可选安装 Playwright（用于截图）
+- 验证安装结果
+
+### 方式二：手动安装
+
+1. **克隆或复制仓库**到本地。
+
+2. **运行安装脚本**：
+
+   ```bash
+   ./install.sh
    ```
-   /geo help
+
+   这会自动处理所有文件部署和依赖安装。
+
+3. **或手动复制文件**：
+
+   ```bash
+   # 创建目录
+   mkdir -p ~/.claude/skills/geo
+   mkdir -p ~/.claude/agents
+
+   # 复制技能文件
+   cp geo/* ~/.claude/skills/geo/
+   cp -r skills/*/ ~/.claude/skills/
+   cp agents/*.md ~/.claude/agents/
+   cp scripts/* ~/.claude/skills/geo/scripts/
    ```
 
-3. **安装 Python 依赖**（可选，用于生成 PDF）：
+4. **安装 Python 依赖**：
 
    ```bash
    pip install reportlab Pillow requests beautifulsoup4
    ```
+
+### 验证安装
+
+安装完成后，验证是否正常工作：
+
+```
+/geo help
+```
+
+如果安装成功，将看到 GEO-SEO 工具的帮助菜单，包含所有可用命令。
 
 ---
 
