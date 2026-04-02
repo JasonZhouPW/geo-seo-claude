@@ -39,6 +39,38 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo prospect <cmd>` | CRM-lite: manage prospects through the sales pipeline |
 | `/geo proposal <domain>` | Auto-generate client proposal from audit data |
 | `/geo compare <domain>` | Monthly delta report: show score improvements to client |
+| `/geo rewrite <url>` | Rewrite page content using AutoGEO rules for AI visibility |
+
+---
+
+## `/geo rewrite` — Document Rewriting
+
+Rewrite webpage content to maximize visibility in LLM-generated answers, powered by AutoGEO rules (ICLR 2026).
+
+**Usage:**
+```
+/geo rewrite <url> [--engine gemini|gpt|claude] [--prompt-only]
+```
+
+**Parameters:**
+- `url`: Target webpage URL
+- `--engine`: Target AI platform (default: `gemini`)
+- `--prompt-only`: Output rewrite prompt without calling LLM
+
+**Examples:**
+```
+/geo rewrite https://example.com                    # Generate rewrite prompt
+/geo rewrite https://example.com --engine gpt     # Target GPT optimization
+/geo rewrite https://example.com --prompt-only     # View prompt only
+```
+
+**How It Works:**
+1. Fetch webpage content
+2. Detect business type (SaaS, E-commerce)
+3. Generate AutoGEO-style rewrite prompt with relevant rules
+4. Return prompt for LLM rewriting
+
+**Output:** Rewrite prompt file (`rewrite-prompt.md`)
 
 ---
 
@@ -174,6 +206,7 @@ All commands generate structured output:
 | `/geo prospect` | Updates `~/.geo-prospects/prospects.json` |
 | `/geo proposal` | `~/.geo-prospects/proposals/<domain>-proposal-<date>.md` |
 | `/geo compare` | `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` |
+| `/geo rewrite` | `rewrite-prompt.md` (rewrite prompt for LLM) |
 
 ---
 
@@ -242,4 +275,7 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 
 # Generate a client-ready report
 /geo report https://example.com
+
+# Rewrite content for AI visibility
+/geo rewrite https://example.com
 ```
