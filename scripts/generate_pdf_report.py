@@ -25,6 +25,14 @@ from reportlab.graphics import renderPDF
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+# AutoGEO rules integration - add script directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from autogeo_rules import get_rules_for_audit, rules_to_action_plan
+    HAS_AUTOGEO_RULES = True
+except ImportError:
+    HAS_AUTOGEO_RULES = False
+
 # Register Chinese font (use system font on macOS)
 try:
     pdfmetrics.registerFont(TTFont("Chinese", "/System/Library/Fonts/STHeiti Light.ttc"))
@@ -891,6 +899,42 @@ def draw_page5(c, data):
     medium_term = data.get("medium_term", [])
     strategic = data.get("strategic", [])
 
+    # AutoGEO rules integration - merge with existing action items
+    if HAS_AUTOGEO_RULES:
+        business_type = data.get("business_type", "other")
+        rules = get_rules_for_audit(business_type, "gemini")
+        autogeo_plan = rules_to_action_plan(rules)
+
+        # Merge AutoGEO rules into quick_wins (deduplicate)
+        existing_qw = set()
+        merged_qw = []
+        for item in quick_wins:
+            text = item.get("action", item) if isinstance(item, dict) else item
+            existing_qw.add(text)
+            merged_qw.append(item)
+        if autogeo_plan.get("quick_wins"):
+            for action in autogeo_plan["quick_wins"]:
+                rule = action.get("rule", "")
+                if rule and rule not in existing_qw:
+                    merged_qw.append(action)
+                    existing_qw.add(rule)
+        quick_wins = merged_qw
+
+        # Merge AutoGEO rules into medium_term (deduplicate)
+        existing_mt = set()
+        merged_mt = []
+        for item in medium_term:
+            text = item.get("action", item) if isinstance(item, dict) else item
+            existing_mt.add(text)
+            merged_mt.append(item)
+        if autogeo_plan.get("medium_term"):
+            for action in autogeo_plan["medium_term"]:
+                rule = action.get("rule", "")
+                if rule and rule not in existing_mt:
+                    merged_mt.append(action)
+                    existing_mt.add(rule)
+        medium_term = merged_mt
+
     # Format date
     if "-" in date:
         try:
@@ -926,8 +970,8 @@ def draw_page5(c, data):
         strategic = ["Build comprehensive Wikipedia presence", "Develop GEO content strategy", "Build E-E-A-T signals"]
 
     phases = [
-        ("Quick Wins", "This Week", "High impact, low effort — implement immediately", ACCENT, quick_wins[:5]),
-        ("Medium-Term", "This Month", "Significant impact, moderate effort", GOLD, medium_term[:5]),
+        ("Quick Wins", "This Week", "High impact, low effort — implement immediately", ACCENT, quick_wins[:10]),
+        ("Medium-Term", "This Month", "Significant impact, moderate effort", GOLD, medium_term[:10]),
         ("Strategic", "This Quarter", "Long-term competitive advantage — ongoing investment", GREEN, strategic[:5]),
     ]
 
