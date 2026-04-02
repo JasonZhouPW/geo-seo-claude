@@ -640,18 +640,21 @@ def draw_page2(c, data):
         y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
         y -= 14
 
-        # Three metric cards in a row
+        # Three metric cards in a row with descriptions
         metrics = [
-            ("Position Score", int(impression_position * 100)),
-            ("Word Count", int(impression_word_count * 100)),
-            ("Citations", citation_count),
+            ("Position Score", f"{int(impression_position * 100)}/100",
+             "Earlier citations score higher"),
+            ("Word Count", f"{int(impression_word_count * 100)}/100",
+             "Substantive content with details"),
+            ("Citations", str(citation_count),
+             "Times your source was cited"),
         ]
 
-        # Card dimensions
+        # Card dimensions - wider and taller to fit description
         card_w = (W - 36*mm - 12) / 3  # 3 equal cards with gaps
-        card_h = 36
+        card_h = 50
 
-        for i, (label, val) in enumerate(metrics):
+        for i, (label, val, desc) in enumerate(metrics):
             cx = 18*mm + i * (card_w + 6)
             cy = y - card_h
 
@@ -662,41 +665,47 @@ def draw_page2(c, data):
             c.saveState()
             c.setFont("Helvetica-Bold", 8)
             c.setFillColor(TEXT_DARK)
-            c.drawCentredString(cx + card_w/2, cy + card_h - 12, label)
+            c.drawCentredString(cx + card_w/2, cy + card_h - 10, label)
             c.restoreState()
 
-            # Value in center (large)
+            # Score value and /100 on same line in center
             c.saveState()
-            c.setFont("Helvetica-Bold", 16)
+            c.setFont("Helvetica-Bold", 14)
             c.setFillColor(GREEN)
-            c.drawCentredString(cx + card_w/2, cy + 8, f"{val}")
+            val_width = c.stringWidth(val, "Helvetica-Bold", 14)
+            slash_width = c.stringWidth("/100", "Helvetica", 9)
+            total_width = val_width + slash_width
+            start_x = cx + card_w/2 - total_width/2
+            c.drawString(start_x, cy + card_h/2 - 4, val)
+            c.setFont("Helvetica", 9)
+            c.setFillColor(TEXT_MID)
+            c.drawString(start_x + val_width, cy + card_h/2 - 4, "/100")
             c.restoreState()
 
-            # Suffix for scores (not for citations)
-            if i < 2:
-                c.saveState()
-                c.setFont("Helvetica", 8)
-                c.setFillColor(TEXT_MID)
-                c.drawCentredString(cx + card_w/2, cy + 0, "/100")
-                c.restoreState()
+            # Description at bottom
+            c.saveState()
+            c.setFont("Helvetica", 6.5)
+            c.setFillColor(TEXT_LIGHT)
+            c.drawCentredString(cx + card_w/2, cy + 8, desc)
+            c.restoreState()
 
         y -= card_h + 15
 
         # Combined score badge
-        badge_w = 80
-        badge_h = 24
+        badge_w = 90
+        badge_h = 26
         draw_rect(c, 18*mm, y - badge_h, badge_w, badge_h, fill=GREEN, radius=4)
         c.saveState()
-        c.setFont("Helvetica-Bold", 12)
+        c.setFont("Helvetica-Bold", 13)
         c.setFillColor(WHITE)
-        c.drawCentredString(18*mm + badge_w/2, y - badge_h/2 + 2, f"{impression_score}/100")
+        c.drawCentredString(18*mm + badge_w/2, y - badge_h/2 + 3, f"{impression_score}/100")
         c.restoreState()
 
         # Combined label
         c.saveState()
         c.setFont("Helvetica", 9)
         c.setFillColor(TEXT_MID)
-        c.drawString(18*mm + badge_w + 10, y - badge_h/2 + 4, "Combined Impression Score")
+        c.drawString(18*mm + badge_w + 12, y - badge_h/2 + 4, "Combined Impression Score")
         c.restoreState()
 
         y -= badge_h + 20
