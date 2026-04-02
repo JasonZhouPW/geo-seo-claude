@@ -118,6 +118,8 @@ Delegate analysis to 5 specialized subagents. Each subagent operates on the coll
 
 ### Phase 3: Score Aggregation and Report Generation
 
+> **⚠️ CRITICAL**: Proceed to Phase 3 ONLY after ALL 5 subagents have returned with their findings. Do NOT generate reports or output partial results until then — doing so causes duplicate report generation with incorrect preliminary scores.
+
 #### Composite GEO Score Calculation
 
 The overall GEO Score (0-100) is a weighted average of six category scores:

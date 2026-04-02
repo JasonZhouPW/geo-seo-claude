@@ -116,8 +116,10 @@ Launch these 5 subagents simultaneously:
 | geo-content | `agents/geo-content.md` | Content quality, E-E-A-T, readability, AI content detection |
 | geo-schema | `agents/geo-schema.md` | Schema markup detection, validation, generation |
 
-**Phase 3: Synthesis (Sequential)**
-1. Collect all subagent reports
+> **⚠️ CRITICAL**: Wait for ALL 5 subagents to return before proceeding to Phase 3. Do NOT generate reports or show results until all subagents complete. Premature reporting causes duplicate report generation with incorrect scores.
+
+**Phase 3: Synthesis (Sequential — only after ALL subagents return)**
+1. Collect all subagent reports — verify all 5 have returned
 2. Calculate composite GEO Score (0-100)
 3. **If `has-solution=true`**: Generate prioritized action plan
 4. Assemble all audit data into a JSON file (`audit-data.json`)
