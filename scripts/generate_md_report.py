@@ -11,6 +11,13 @@ import json
 import os
 from datetime import datetime
 
+# AutoGEO rules integration
+try:
+    from autogeo_rules import get_rules_for_audit, rules_to_action_plan
+    HAS_AUTOGEO_RULES = True
+except ImportError:
+    HAS_AUTOGEO_RULES = False
+
 def generate_md_report(data, output_path="GEO-REPORT.md"):
     """Generate markdown report from data dict."""
     url = data.get("url", "https://example.com")
@@ -203,20 +210,50 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append("## Action Plan")
     md.append("")
 
-    if quick_wins:
+    # Use AutoGEO rules to enhance action plan
+    autogeo_plan = None
+    if HAS_AUTOGEO_RULES:
+        rules = get_rules_for_audit(business_type, "gemini")
+        autogeo_plan = rules_to_action_plan(rules)
+
+    if quick_wins or (autogeo_plan and autogeo_plan.get("quick_wins")):
         md.append("### 🟡 High Priority")
         md.append("")
-        for i, action in enumerate(quick_wins[:5], 1):
+        # First add existing quick_wins from audit data
+        shown = set()
+        idx = 1
+        for action in quick_wins[:5]:
             action_text = action.get("action", action) if isinstance(action, dict) else action
-            md.append(f"{i}. **{action_text}**")
+            md.append(f"{idx}. **{action_text}**")
+            shown.add(action_text)
+            idx += 1
+        # Supplement with AutoGEO rules
+        if autogeo_plan and autogeo_plan.get("quick_wins"):
+            for action in autogeo_plan["quick_wins"]:
+                rule = action.get("rule", "")
+                if rule not in shown:
+                    md.append(f"{idx}. **{rule}**")
+                    shown.add(rule)
+                    idx += 1
         md.append("")
 
-    if medium_term:
+    if medium_term or (autogeo_plan and autogeo_plan.get("medium_term")):
         md.append("### 🟢 Medium Term")
         md.append("")
-        for i, action in enumerate(medium_term[:5], 1):
+        shown = set()
+        idx = 1
+        for action in medium_term[:5]:
             action_text = action.get("action", action) if isinstance(action, dict) else action
-            md.append(f"{i}. **{action_text}**")
+            md.append(f"{idx}. **{action_text}**")
+            shown.add(action_text)
+            idx += 1
+        if autogeo_plan and autogeo_plan.get("medium_term"):
+            for action in autogeo_plan["medium_term"]:
+                rule = action.get("rule", "")
+                if rule not in shown:
+                    md.append(f"{idx}. **{rule}**")
+                    shown.add(rule)
+                    idx += 1
         md.append("")
 
     if strategic:

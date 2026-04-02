@@ -173,8 +173,10 @@ def page_footer(c, page_num, total, url="", brand=""):
     c.setStrokeColor(BORDER)
     c.setLineWidth(0.5)
     c.line(18*mm, 14*mm, W - 18*mm, 14*mm)
-    c.setFont("Helvetica", 7)
     c.setFillColor(TEXT_LIGHT)
+    # Use CJK font for brand names with Chinese characters
+    font_reg, font_bold = get_font_for_text()
+    c.setFont(font_reg, 7)
     footer_text = f"GEO Analysis Report  ·  {brand} ({url})  ·  Confidential"
     c.drawString(18*mm, 10*mm, footer_text)
     c.drawRightString(W - 18*mm, 10*mm, f"Page {page_num} of {total}")
