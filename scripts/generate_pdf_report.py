@@ -375,15 +375,15 @@ def draw_cover(c, data):
     tiers = [("Needs Work", "0–49", RED_SOFT), ("Fair", "50–59", ORANGE), ("Good", "60–79", ACCENT), ("Excellent", "80–100", GREEN)]
     tx = 95*mm
     ty = sy + 26*mm
-    block_w = 36
-    gap = 1
+    block_w = 42
+    gap = 0
     for name, rng, col in tiers:
         draw_rect(c, tx, ty, block_w, 15, fill=col if name == tier_label else LIGHT_BG, radius=4)
         c.saveState()
-        c.setFont("Helvetica-Bold", 6.5)
+        c.setFont("Helvetica-Bold", 5.5)
         c.setFillColor(WHITE if name == tier_label else TEXT_MID)
         c.drawCentredString(tx + block_w/2, ty + 8, name)
-        c.setFont("Helvetica", 5.5)
+        c.setFont("Helvetica", 5)
         c.drawCentredString(tx + block_w/2, ty + 2, rng)
         c.restoreState()
         tx += block_w + gap
