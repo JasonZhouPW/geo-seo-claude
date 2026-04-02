@@ -655,9 +655,9 @@ def draw_page2(c, data):
         c.drawString(24*mm + 70, y - 10, "Combined Impression Score")
         c.restoreState()
 
-        # Metrics - cleaner table layout with separate columns
-        col1_x = 110*mm   # Label column
-        col2_x = 148*mm   # Value column
+        # Metrics - table layout with separate columns
+        col1_x = 112*mm   # Label column
+        col2_x = 156*mm   # Value column (more space for long labels)
         row_h = 13        # Height per row
         c.saveState()
         # Row 1: Position Score
@@ -667,10 +667,10 @@ def draw_page2(c, data):
         c.setFont("Helvetica", 8)
         c.setFillColor(TEXT_MID)
         c.drawString(col2_x, y, f"{int(impression_position * 100)}/100")
-        # Row 2: Word Count Score
+        # Row 2: Word Count
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y - row_h, "Word Count Score:")
+        c.drawString(col1_x, y - row_h, "Word Count:")
         c.setFont("Helvetica", 8)
         c.setFillColor(TEXT_MID)
         c.drawString(col2_x, y - row_h, f"{int(impression_word_count * 100)}/100")
