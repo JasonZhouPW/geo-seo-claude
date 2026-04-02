@@ -11,7 +11,8 @@ import json
 import os
 from datetime import datetime
 
-# AutoGEO rules integration
+# AutoGEO rules integration - add script directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from autogeo_rules import get_rules_for_audit, rules_to_action_plan
     HAS_AUTOGEO_RULES = True
