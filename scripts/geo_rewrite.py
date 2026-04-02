@@ -8,6 +8,7 @@ to maximize visibility in LLM-generated answers.
 Usage:
     python geo_rewrite.py <url> [--engine gemini|gpt|claude] [--dataset research|ecommerce]
     python geo_rewrite.py <url> --prompt-only  # Just output the rewrite prompt
+    python geo_rewrite.py <url> -o output.md   # Rewrite and save to output.md
 """
 
 import sys
@@ -24,6 +25,14 @@ try:
 except ImportError:
     print("ERROR: Required packages not installed. Run: pip install -r requirements.txt")
     sys.exit(1)
+
+# LLM calling capability
+try:
+    from anthropic import Anthropic
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
+    print("Warning: Anthropic SDK not found, LLM rewriting disabled")
 
 # AutoGEO rules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -141,12 +150,50 @@ def detect_business_type(title: str, content: str) -> str:
     return "saas"
 
 
+def call_llm_rewrite(prompt: str, engine: str = "gemini") -> str:
+    """
+    Call LLM to rewrite content using the provided prompt.
+
+    Args:
+        prompt: The rewrite prompt
+        engine: Target AI engine (gemini, gpt, claude)
+
+    Returns:
+        Rewritten content from LLM
+    """
+    if not HAS_ANTHROPIC:
+        return "[Error: Anthropic SDK not available]"
+
+    try:
+        client = Anthropic(
+            base_url=os.environ.get("ANTHROPIC_BASE_URL", "https://api.minimaxi.com/anthropic"),
+            api_key=os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
+        )
+
+        model = os.environ.get("ANTHROPIC_MODEL", "MiniMax-M2.7-highspeed")
+
+        response = client.messages.create(
+            model=model,
+            max_tokens=8192,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        # Extract text from response, handling thinking blocks
+        rewritten = ""
+        for block in response.content:
+            if hasattr(block, 'text'):
+                rewritten += block.text
+            # Skip thinking blocks
+
+        return rewritten.strip()
+
+    except Exception as e:
+        return f"[Error calling LLM: {str(e)}]"
+
+
 def rewrite_content(content: str, url: str, engine: str = "gemini") -> str:
     """
-    Rewrite content using AutoGEO rules.
-
-    Note: This function generates the rewrite prompt.
-    For actual LLM rewriting, you need to call an LLM API.
+    Rewrite content using AutoGEO rules and LLM.
 
     Args:
         content: Original content
@@ -154,11 +201,15 @@ def rewrite_content(content: str, url: str, engine: str = "gemini") -> str:
         engine: Target AI engine
 
     Returns:
-        Rewrite prompt (or rewritten content if LLM available)
+        Rewritten content
     """
     business_type = detect_business_type("", content)
     prompt = get_rewrite_prompt(content, url, business_type, engine)
-    return prompt
+
+    if not HAS_ANTHROPIC:
+        return prompt
+
+    return call_llm_rewrite(prompt, engine)
 
 
 def main():
@@ -204,15 +255,25 @@ def main():
             print(prompt)
             print("="*60)
     else:
-        # For now, output the prompt (LLM calling would require API keys)
-        print("\n[Note: LLM rewriting requires API keys]")
-        print("Use --prompt-only to see the rewrite prompt")
-        print(f"\nPrompt preview (first 500 chars):\n{prompt[:500]}...")
+        # Call LLM to rewrite
+        print("\nCalling LLM to rewrite content...")
+        rewritten = call_llm_rewrite(prompt, args.engine)
+
+        if rewritten.startswith("[Error"):
+            print(f"LLM Error: {rewritten}")
+            print("\nFalling back to prompt-only mode")
+            print(prompt[:500] + "..." if len(prompt) > 500 else prompt)
+            sys.exit(1)
+
+        print(f"\nRewritten content ({len(rewritten)} characters):")
+        print("="*60)
+        print(rewritten[:2000] + "..." if len(rewritten) > 2000 else rewritten)
+        print("="*60)
 
         if args.output:
             with open(args.output, "w") as f:
-                f.write(prompt)
-            print(f"Prompt written to: {args.output}")
+                f.write(rewritten)
+            print(f"\nRewritten content saved to: {args.output}")
 
 
 if __name__ == "__main__":
