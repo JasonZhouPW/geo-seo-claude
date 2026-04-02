@@ -638,8 +638,9 @@ def draw_page2(c, data):
 
         # Score card
         card_w = W - 36*mm
-        draw_rect(c, 18*mm, y - 50, card_w, 46, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
-        y -= 8
+        card_h = 58  # Increased height for 3 metrics with proper spacing
+        draw_rect(c, 18*mm, y - card_h, card_w, card_h, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
+        y -= 10
 
         # Combined score
         c.saveState()
@@ -656,17 +657,18 @@ def draw_page2(c, data):
 
         # Metrics
         metrics_x = 110*mm
+        row_gap = 16  # Increased spacing to prevent overlap
         c.saveState()
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(TEXT_DARK)
         c.drawString(metrics_x, y - 8, "Position Score:")
-        c.drawString(metrics_x, y - 20, "Word Count Score:")
-        c.drawString(metrics_x, y - 32, "Citations:")
+        c.drawString(metrics_x, y - 8 - row_gap, "Word Count Score:")
+        c.drawString(metrics_x, y - 8 - row_gap * 2, "Citations:")
         c.setFont("Helvetica", 8)
         c.setFillColor(TEXT_MID)
-        c.drawString(metrics_x + 35, y - 8, f"{int(impression_position * 100)}/100")
-        c.drawString(metrics_x + 35, y - 20, f"{int(impression_word_count * 100)}/100")
-        c.drawString(metrics_x + 35, y - 32, f"{citation_count}")
+        c.drawString(metrics_x + 38, y - 8, f"{int(impression_position * 100)}/100")
+        c.drawString(metrics_x + 38, y - 8 - row_gap, f"{int(impression_word_count * 100)}/100")
+        c.drawString(metrics_x + 38, y - 8 - row_gap * 2, f"{citation_count}")
         c.restoreState()
 
         y -= 66
