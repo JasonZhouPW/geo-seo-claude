@@ -322,13 +322,14 @@ def draw_cover(c, data):
     c.drawString(95*mm, sy + 44*mm, "Overall GEO Score")
     c.setFont("Helvetica", 9)
     c.setFillColor(TEXT_MID)
-    c.drawString(95*mm, sy + 36*mm, "Placing in the")
+    c.drawString(95*mm, sy + 36*mm, "Placing in the ")
     c.setFont("Helvetica-Bold", 9)
     c.setFillColor(GREEN)
-    c.drawString(95*mm + 60, sy + 36*mm, f" {tier_label}")
+    tier_w = c.stringWidth(tier_label, "Helvetica-Bold", 9)
+    c.drawString(95*mm + c.stringWidth("Placing in the ", "Helvetica", 9), sy + 36*mm, tier_label)
     c.setFont("Helvetica", 9)
     c.setFillColor(TEXT_MID)
-    c.drawString(95*mm + 60 + len(tier_label) * 5.5, sy + 36*mm, " tier")
+    c.drawString(95*mm + c.stringWidth("Placing in the ", "Helvetica", 9) + tier_w, sy + 36*mm, " tier")
     c.restoreState()
 
     # Tier bar
@@ -673,8 +674,13 @@ def draw_page3(c, data):
         c.saveState()
         c.setFont("Helvetica-Bold", 8.5)
         c.setFillColor(TEXT_DARK)
-        # Format crawler name
-        display_name = crawler.replace("_", " ").title()
+        # Friendly name mapping for crawler keys
+        friendly_names = {
+            "robots_txt_ai_crawlers": "AI Crawlers in robots.txt",
+            "llms_txt": "llms.txt File",
+            "geo_blocking": "Geo-blocking",
+        }
+        display_name = friendly_names.get(crawler, crawler.replace("_", " ").title())
         c.drawString(31*mm, y + 11, display_name)
         c.setFont("Helvetica", 8)
         c.setFillColor(TEXT_MID)
