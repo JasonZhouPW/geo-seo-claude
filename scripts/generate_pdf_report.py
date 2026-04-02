@@ -102,6 +102,24 @@ def label(c, text, x, y, size=8, color=TEXT_LIGHT, font="Helvetica", align="left
     else: c.drawString(x, y, text)
     c.restoreState()
 
+def shorten_status(status):
+    """Shorten verbose status strings for table display."""
+    s = str(status)
+    if s == "HTTP 200":
+        return "HTTP 200"
+    if "wrong content-type" in s.lower() or "text/html" in s:
+        return "Wrong Content-Type"
+    if "accessible" in s.lower():
+        return "Accessible"
+    if "missing" in s.lower() or "not present" in s.lower():
+        return "Missing"
+    if "allowed" in s.lower():
+        return "Allowed"
+    if "blocked" in s.lower():
+        return "Blocked"
+    # Truncate long strings
+    return s[:30] + "..." if len(s) > 30 else s
+
 def score_ring(c, cx, cy, score, size=60, label_text=""):
     """Draw a circular score gauge."""
     r_outer = size / 2
@@ -344,7 +362,8 @@ def draw_cover(c, data):
     c.setFillColor(TEXT_MID)
     c.drawString(95*mm, sy + 36*mm, "Placing in the ")
     c.setFont("Helvetica-Bold", 9)
-    c.setFillColor(GREEN)
+    tier_color = RED_SOFT if tier_label == "Needs Work" else ORANGE if tier_label == "Fair" else GREEN
+    c.setFillColor(tier_color)
     tier_w = c.stringWidth(tier_label, "Helvetica-Bold", 9)
     c.drawString(95*mm + c.stringWidth("Placing in the ", "Helvetica", 9), sy + 36*mm, tier_label)
     c.setFont("Helvetica", 9)
@@ -427,10 +446,11 @@ def draw_cover(c, data):
 
     text_y = ey - 16
     max_w = W - 36*mm
-    lines = word_wrap_text(c, summary, max_w, "Helvetica", 8.5)
+    font_reg, _ = get_font_for_text()
+    lines = word_wrap_text(c, summary, max_w, font_reg, 8.5)
 
     c.saveState()
-    c.setFont("Helvetica", 8.5)
+    c.setFont(font_reg, 8.5)
     c.setFillColor(TEXT_MID)
     for ln in lines:
         c.drawString(18*mm, text_y, ln)
@@ -771,7 +791,7 @@ def draw_page3(c, data):
         robots_txt_status = crawler_access.get("robots_txt_status", "")
         if robots_txt_status:
             allowed = "accessible" in str(robots_txt_status).lower()
-            crawler_checks.append(("robots.txt AI Crawlers", "All AI crawlers permitted", robots_txt_status.title(), "✓" if allowed else "!", GREEN if allowed else ORANGE))
+            crawler_checks.append(("robots.txt AI Crawlers", "All AI crawlers permitted", shorten_status(robots_txt_status.title()), "✓" if allowed else "!", GREEN if allowed else ORANGE))
 
         # llms_txt (dict with status and platform)
         llms = crawler_access.get("llms_txt", {})
@@ -779,13 +799,13 @@ def draw_page3(c, data):
             status = llms.get("status", "missing")
             platform = llms.get("platform", "llms.txt")
             ok = status == "HTTP 200"
-            crawler_checks.append(("llms.txt", platform, status, "✓" if ok else "!", GREEN if ok else ORANGE))
+            crawler_checks.append(("llms.txt", platform, shorten_status(status), "✓" if ok else "!", GREEN if ok else ORANGE))
 
         # ai_crawlers (dict of crawler_name -> allowed status)
         ai_crawlers = crawler_access.get("ai_crawlers", {})
         for crawler_name, status in ai_crawlers.items():
             allowed = status in ("allowed", "Allowed", True)
-            crawler_checks.append((crawler_name, "AI Crawler", status.title(), "✓" if allowed else "!", GREEN if allowed else RED_SOFT))
+            crawler_checks.append((crawler_name, "AI Crawler", shorten_status(status.title()), "✓" if allowed else "!", GREEN if allowed else RED_SOFT))
 
     if not crawler_checks:
         crawler_checks = [
@@ -820,11 +840,13 @@ def draw_page3(c, data):
         c.saveState()
         c.setFont("Helvetica-Bold", 8.5)
         c.setFillColor(TEXT_DARK)
-        # Friendly name mapping for crawler keys
+        # Friendly name mapping for crawler keys (preserve original casing)
         friendly_names = {
-            "robots_txt_ai_crawlers": "AI Crawlers in robots.txt",
-            "llms_txt": "llms.txt File",
+            "robots.txt AI Crawlers": "robots.txt AI Crawlers",
+            "llms.txt": "llms.txt",
+            "llms_txt": "llms.txt",
             "geo_blocking": "Geo-blocking",
+            "robots_txt_ai_crawlers": "AI Crawlers in robots.txt",
         }
         display_name = friendly_names.get(crawler, crawler.replace("_", " ").title())
         c.drawString(31*mm, y + 11, display_name)
@@ -834,7 +856,7 @@ def draw_page3(c, data):
 
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(col)
-        c.drawString(W - 53*mm, y + 6, str(status))
+        c.drawString(W - 53*mm, y + 6, str(status)[:25])
         c.restoreState()
         y -= 24
 
