@@ -669,24 +669,24 @@ def draw_page2(c, data):
         c.drawString(metrics_x + 35, y - 32, f"{citation_count}")
         c.restoreState()
 
-        y -= 58
+        y -= 66
 
         # Recommendations
         if impression_recommendations:
-            y -= 4
+            y -= 6
             c.saveState()
             c.setFont("Helvetica-Bold", 8)
             c.setFillColor(TEXT_DARK)
             c.drawString(18*mm, y, "Recommendations:")
             c.restoreState()
-            y -= 12
+            y -= 14
             for rec in impression_recommendations[:2]:
                 c.saveState()
                 c.setFont("Helvetica", 7.5)
                 c.setFillColor(TEXT_MID)
                 c.drawString(22*mm, y, f"• {rec[:80]}")
                 c.restoreState()
-                y -= 10
+                y -= 12
 
     page_footer(c, 2, 5, url, brand_name)
     c.showPage()
