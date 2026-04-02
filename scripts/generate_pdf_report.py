@@ -668,18 +668,11 @@ def draw_page2(c, data):
             c.drawCentredString(cx + card_w/2, cy + card_h - 10, label)
             c.restoreState()
 
-            # Score value and /100 on same line in center
+            # Score value in center - Position Score and Word Count already have /100, Citations doesn't
             c.saveState()
             c.setFont("Helvetica-Bold", 14)
             c.setFillColor(GREEN)
-            val_width = c.stringWidth(val, "Helvetica-Bold", 14)
-            slash_width = c.stringWidth("/100", "Helvetica", 9)
-            total_width = val_width + slash_width
-            start_x = cx + card_w/2 - total_width/2
-            c.drawString(start_x, cy + card_h/2 - 4, val)
-            c.setFont("Helvetica", 9)
-            c.setFillColor(TEXT_MID)
-            c.drawString(start_x + val_width, cy + card_h/2 - 4, "/100")
+            c.drawCentredString(cx + card_w/2, cy + card_h/2 - 4, val)
             c.restoreState()
 
             # Description at bottom
