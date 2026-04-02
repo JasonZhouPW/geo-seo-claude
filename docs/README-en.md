@@ -433,9 +433,16 @@ Output: `~/.geo-prospects/reports/{domain}-monthly-{YYYY-MM}.md`
 | Schema & Structured Data | 10% | Schema.org markup quality and completeness |
 | Platform Optimization | 10% | Presence on platforms AI models cite |
 
-**Formula:**
+**Note:** When measured, a **7th category — GEO Impression Score** — is included at 14% weight. This score assesses how well the site appears in LLM-generated answers based on citation frequency, position, and content length. When not measured, it shows 0% and is excluded from the formula.
+
+**Formula (6-category, standard):**
 ```
 GEO_Score = (Citability × 0.25) + (Brand × 0.20) + (EEAT × 0.20) + (Technical × 0.15) + (Schema × 0.10) + (Platform × 0.10)
+```
+
+**Formula (7-category, with GEO Impression Score):**
+```
+GEO_Score = (Citability × 0.22) + (Brand × 0.18) + (EEAT × 0.18) + (Technical × 0.12) + (Schema × 0.08) + (Platform × 0.08) + (Impression × 0.14)
 ```
 
 ### Issue Severity Classification
