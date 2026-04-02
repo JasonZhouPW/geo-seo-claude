@@ -655,20 +655,31 @@ def draw_page2(c, data):
         c.drawString(24*mm + 70, y - 10, "Combined Impression Score")
         c.restoreState()
 
-        # Metrics
+        # Metrics - each metric on its own row
         metrics_x = 110*mm
-        row_gap = 16  # Increased spacing to prevent overlap
+        row_h = 14  # Height per row
         c.saveState()
+        # Row 1: Position Score
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(TEXT_DARK)
-        c.drawString(metrics_x, y - 8, "Position Score:")
-        c.drawString(metrics_x, y - 8 - row_gap, "Word Count Score:")
-        c.drawString(metrics_x, y - 8 - row_gap * 2, "Citations:")
+        c.drawString(metrics_x, y, "Position Score:")
         c.setFont("Helvetica", 8)
         c.setFillColor(TEXT_MID)
-        c.drawString(metrics_x + 38, y - 8, f"{int(impression_position * 100)}/100")
-        c.drawString(metrics_x + 38, y - 8 - row_gap, f"{int(impression_word_count * 100)}/100")
-        c.drawString(metrics_x + 38, y - 8 - row_gap * 2, f"{citation_count}")
+        c.drawString(metrics_x + 38, y, f"{int(impression_position * 100)}/100")
+        # Row 2: Word Count Score
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(metrics_x, y - row_h, "Word Count Score:")
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(metrics_x + 38, y - row_h, f"{int(impression_word_count * 100)}/100")
+        # Row 3: Citations
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(metrics_x, y - row_h * 2, "Citations:")
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(metrics_x + 38, y - row_h * 2, f"{citation_count}")
         c.restoreState()
 
         y -= 66
