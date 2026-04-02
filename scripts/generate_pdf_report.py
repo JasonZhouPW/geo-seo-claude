@@ -51,6 +51,19 @@ def get_font_for_text(font_regular="Helvetica", font_bold="Helvetica-Bold"):
         return ("Chinese", "ChineseBold")
     return (font_regular, font_bold)
 
+def get_action_text(item):
+    """Extract display text from an action item (handles dict with 'action' or 'rule' key, or plain string)."""
+    if isinstance(item, dict):
+        # Try 'action' key first (original format), then 'rule' (AutoGEO format)
+        if "action" in item:
+            return item["action"]
+        elif "rule" in item:
+            return item["rule"]
+        else:
+            # Fallback: return a readable summary
+            return str(item)
+    return str(item)
+
 # ── Brand Palette (from geo_report_template) ──────────────────────────────────
 NAVY       = colors.HexColor("#0D1B2A")
 DARK_BLUE  = colors.HexColor("#1A2E44")
@@ -915,7 +928,7 @@ def draw_page5(c, data):
         existing_qw = set()
         merged_qw = []
         for item in quick_wins:
-            text = item.get("action", item) if isinstance(item, dict) else item
+            text = get_action_text(item)
             existing_qw.add(text)
             merged_qw.append(item)
         if autogeo_plan.get("quick_wins"):
@@ -930,7 +943,7 @@ def draw_page5(c, data):
         existing_mt = set()
         merged_mt = []
         for item in medium_term:
-            text = item.get("action", item) if isinstance(item, dict) else item
+            text = get_action_text(item)
             existing_mt.add(text)
             merged_mt.append(item)
         if autogeo_plan.get("medium_term"):
@@ -1009,7 +1022,7 @@ def draw_page5(c, data):
             c.restoreState()
 
             # Item text
-            item_text = item.get("action", item) if isinstance(item, dict) else item
+            item_text = get_action_text(item)
             c.saveState()
             c.setFont("Helvetica", 9)
             c.setFillColor(TEXT_DARK)
