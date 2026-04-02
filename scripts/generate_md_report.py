@@ -95,8 +95,7 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append(f"| Technical Foundations | {technical}/100 | 🟢 Good |")
     md.append(f"| Structured Data | {schema_score}/100 | 🟢 Good |")
     md.append(f"| Platform Optimization | {platform_optimization}/100 | 🟢 Good |")
-    if impression_score > 0:
-        md.append(f"| **GEO Impression Score** | **{impression_score}/100** | 🟢 Measured |")
+    md.append(f"| **GEO Impression Score** | **{impression_score}/100** | 🟢 {'Measured' if impression_score > 0 else 'Not Measured'} |")
     md.append("")
     md.append("---")
     md.append("")
@@ -121,12 +120,14 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
         total = ai_citability*0.22 + brand_authority*0.18 + content_eeat*0.18 + technical*0.12 + schema_score*0.08 + platform_optimization*0.08 + impression_score*0.14
         md.append(f"                                        Total: {total:.1f} → {geo_score}/100")
     else:
+        # GEO Impression Score not measured - use 6-category weights
         md.append(f"├── AI Citability & Visibility  [25%] → {ai_citability}/100 ({ai_citability * 0.25:.1f} pts)")
         md.append(f"├── Brand Authority Signals      [20%] → {brand_authority}/100 ({brand_authority * 0.20:.1f} pts)")
         md.append(f"├── Content Quality & E-E-A-T  [20%] → {content_eeat}/100 ({content_eeat * 0.20:.1f} pts)")
         md.append(f"├── Technical Foundations       [15%] → {technical}/100 ({technical * 0.15:.1f} pts)")
         md.append(f"├── Structured Data           [10%] → {schema_score}/100 ({schema_score * 0.10:.1f} pts)")
-        md.append(f"└── Platform Optimization    [10%] → {platform_optimization}/100 ({platform_optimization * 0.10:.1f} pts)")
+        md.append(f"├── Platform Optimization    [10%] → {platform_optimization}/100 ({platform_optimization * 0.10:.1f} pts)")
+        md.append(f"└── GEO Impression Score      [0%] → {impression_score}/100 (Not Measured)")
         md.append(f"                                        ─────────────")
         total = ai_citability*0.25 + brand_authority*0.20 + content_eeat*0.20 + technical*0.15 + schema_score*0.10 + platform_optimization*0.10
         md.append(f"                                        Total: {total:.1f} → {geo_score}/100")

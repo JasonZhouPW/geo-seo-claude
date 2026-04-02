@@ -520,6 +520,7 @@ def draw_page2(c, data):
                 ("Technical Foundations",       technical, 15, score_breakdown.get("technical", {}).get("points", technical * 0.15)),
                 ("Structured Data",             schema_score, 10, score_breakdown.get("structured_data", {}).get("points", schema_score * 0.10)),
                 ("Platform Optimization",       platform_opt, 10, score_breakdown.get("platform_optimization", {}).get("points", platform_opt * 0.10)),
+                ("GEO Impression Score",        impression_score, 0, 0),
             ]
         else:
             comps_data = [
@@ -529,6 +530,7 @@ def draw_page2(c, data):
                 ("Technical Foundations",       technical, 15, technical * 0.15),
                 ("Structured Data",             schema_score, 10, schema_score * 0.10),
                 ("Platform Optimization",       platform_opt, 10, platform_opt * 0.10),
+                ("GEO Impression Score",        impression_score, 0, 0),
             ]
 
     comps = []
