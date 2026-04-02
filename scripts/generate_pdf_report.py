@@ -244,6 +244,10 @@ def draw_cover(c, data):
     scores = data.get("scores", {})
     executive_summary = data.get("executive_summary", "")
 
+    # GEO Impression Score
+    geo_impression = data.get("geo_impression_score", {})
+    impression_score = int(geo_impression.get("combined_score", 0) * 100) if geo_impression else 0
+
     # Format date
     if "-" in date:
         try:
@@ -375,10 +379,11 @@ def draw_cover(c, data):
         ("Technical", technical),
         ("Structured Data", schema_score),
         ("Platform Opt.", platform_optimization),
+        ("GEO Impression", impression_score),
     ]
     cx_start = 18*mm + 6
     cy2 = sy + 10*mm
-    cw = (W - 36*mm - 12) / 6
+    cw = (W - 36*mm - 12) / 7  # 7 components now
     for i, (name, sc) in enumerate(comps):
         bx = cx_start + i * cw
         # mini gauge
@@ -390,7 +395,7 @@ def draw_cover(c, data):
         c.setFont("Helvetica-Bold", 7.5)
         c.setFillColor(NAVY)
         c.drawCentredString(bx + cw/2 - 2, cy2 + 11, f"{sc}")
-        c.setFont("Helvetica", 6)
+        c.setFont("Helvetica", 5.5)  # Smaller font for 7 components
         c.setFillColor(TEXT_LIGHT)
         c.drawCentredString(bx + cw/2 - 2, cy2 - 8, name)
         c.restoreState()
