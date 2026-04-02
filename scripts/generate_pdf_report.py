@@ -301,7 +301,10 @@ def draw_cover(c, data):
     c.saveState()
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.HexColor("#A0B4C8"))
-    c.drawString(18*mm, H - 78*mm, f"for {brand_name}")
+    font_reg, font_bold = get_font_for_text()
+    # Truncate long brand names for display
+    display_brand = brand_name if len(brand_name) <= 40 else brand_name[:37] + "..."
+    c.drawString(18*mm, H - 78*mm, f"for {display_brand}")
     c.restoreState()
 
     # Meta info block (right side of header)
@@ -640,90 +643,90 @@ def draw_page2(c, data):
     y -= 20  # Extra margin before next section
 
     # ── GEO IMPRESSION SCORE ────────────────────────────────────────────────
-    if impression_score > 0:
-        y -= 10
-        y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
+    # Always show GEO Impression section (even when score is 0 or not measured)
+    y -= 10
+    y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
+    y -= 14
+
+    # Three metric cards in a row with descriptions
+    metrics = [
+        ("Position Score", f"{int(impression_position * 100)}/100",
+         "Earlier citations score higher"),
+        ("Word Count", f"{int(impression_word_count * 100)}/100",
+         "Substantive content with details"),
+        ("Citations", str(citation_count),
+         "Times your source was cited"),
+    ]
+
+    # Card dimensions - wider and taller to fit description
+    card_w = (W - 36*mm - 12) / 3  # 3 equal cards with gaps
+    card_h = 50
+
+    for i, (label, val, desc) in enumerate(metrics):
+        cx = 18*mm + i * (card_w + 6)
+        cy = y - card_h
+
+        # Draw card background
+        draw_rect(c, cx, cy, card_w, card_h, fill=WHITE, stroke=BORDER, radius=5, lw=0.6)
+
+        # Label at top
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawCentredString(cx + card_w/2, cy + card_h - 10, label)
+        c.restoreState()
+
+        # Score value in center - Position Score and Word Count already have /100, Citations doesn't
+        c.saveState()
+        c.setFont("Helvetica-Bold", 14)
+        c.setFillColor(GREEN)
+        c.drawCentredString(cx + card_w/2, cy + card_h/2 - 4, val)
+        c.restoreState()
+
+        # Description at bottom
+        c.saveState()
+        c.setFont("Helvetica", 6.5)
+        c.setFillColor(TEXT_LIGHT)
+        c.drawCentredString(cx + card_w/2, cy + 8, desc)
+        c.restoreState()
+
+    y -= card_h + 15
+
+    # Combined score badge
+    badge_w = 90
+    badge_h = 26
+    draw_rect(c, 18*mm, y - badge_h, badge_w, badge_h, fill=GREEN, radius=4)
+    c.saveState()
+    c.setFont("Helvetica-Bold", 13)
+    c.setFillColor(WHITE)
+    c.drawCentredString(18*mm + badge_w/2, y - badge_h/2 + 3, f"{impression_score}/100")
+    c.restoreState()
+
+    # Combined label
+    c.saveState()
+    c.setFont("Helvetica", 9)
+    c.setFillColor(TEXT_MID)
+    c.drawString(18*mm + badge_w + 12, y - badge_h/2 + 4, "Combined Impression Score")
+    c.restoreState()
+
+    y -= badge_h + 20
+
+    # Recommendations
+    if impression_recommendations:
+        y -= 6
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, "Recommendations:")
+        c.restoreState()
         y -= 14
-
-        # Three metric cards in a row with descriptions
-        metrics = [
-            ("Position Score", f"{int(impression_position * 100)}/100",
-             "Earlier citations score higher"),
-            ("Word Count", f"{int(impression_word_count * 100)}/100",
-             "Substantive content with details"),
-            ("Citations", str(citation_count),
-             "Times your source was cited"),
-        ]
-
-        # Card dimensions - wider and taller to fit description
-        card_w = (W - 36*mm - 12) / 3  # 3 equal cards with gaps
-        card_h = 50
-
-        for i, (label, val, desc) in enumerate(metrics):
-            cx = 18*mm + i * (card_w + 6)
-            cy = y - card_h
-
-            # Draw card background
-            draw_rect(c, cx, cy, card_w, card_h, fill=WHITE, stroke=BORDER, radius=5, lw=0.6)
-
-            # Label at top
+        for rec in impression_recommendations[:2]:
             c.saveState()
-            c.setFont("Helvetica-Bold", 8)
-            c.setFillColor(TEXT_DARK)
-            c.drawCentredString(cx + card_w/2, cy + card_h - 10, label)
+            c.setFont("Helvetica", 7.5)
+            c.setFillColor(TEXT_MID)
+            c.drawString(22*mm, y, f"• {rec[:80]}")
             c.restoreState()
-
-            # Score value in center - Position Score and Word Count already have /100, Citations doesn't
-            c.saveState()
-            c.setFont("Helvetica-Bold", 14)
-            c.setFillColor(GREEN)
-            c.drawCentredString(cx + card_w/2, cy + card_h/2 - 4, val)
-            c.restoreState()
-
-            # Description at bottom
-            c.saveState()
-            c.setFont("Helvetica", 6.5)
-            c.setFillColor(TEXT_LIGHT)
-            c.drawCentredString(cx + card_w/2, cy + 8, desc)
-            c.restoreState()
-
-        y -= card_h + 15
-
-        # Combined score badge
-        badge_w = 90
-        badge_h = 26
-        draw_rect(c, 18*mm, y - badge_h, badge_w, badge_h, fill=GREEN, radius=4)
-        c.saveState()
-        c.setFont("Helvetica-Bold", 13)
-        c.setFillColor(WHITE)
-        c.drawCentredString(18*mm + badge_w/2, y - badge_h/2 + 3, f"{impression_score}/100")
-        c.restoreState()
-
-        # Combined label
-        c.saveState()
-        c.setFont("Helvetica", 9)
-        c.setFillColor(TEXT_MID)
-        c.drawString(18*mm + badge_w + 12, y - badge_h/2 + 4, "Combined Impression Score")
-        c.restoreState()
-
-        y -= badge_h + 20
-
-        # Recommendations
-        if impression_recommendations:
-            y -= 6
-            c.saveState()
-            c.setFont("Helvetica-Bold", 8)
-            c.setFillColor(TEXT_DARK)
-            c.drawString(18*mm, y, "Recommendations:")
-            c.restoreState()
-            y -= 14
-            for rec in impression_recommendations[:2]:
-                c.saveState()
-                c.setFont("Helvetica", 7.5)
-                c.setFillColor(TEXT_MID)
-                c.drawString(22*mm, y, f"• {rec[:80]}")
-                c.restoreState()
-                y -= 12
+            y -= 12
 
     page_footer(c, 2, 5, url, brand_name)
     c.showPage()
@@ -762,30 +765,31 @@ def draw_page3(c, data):
     # Build crawler data from crawler_access
     crawler_checks = []
     if crawler_access:
-        robots_txt = crawler_access.get("robots_txt_ai_crawlers", {})
-        if robots_txt:
-            crawler_checks.append(("robots_txt_ai_crawlers", robots_txt.get("platform", ""), robots_txt.get("status", ""), "✓" if "Allowed" in str(robots_txt.get("status", "")) else "!", GREEN if "Allowed" in str(robots_txt.get("status", "")) else ORANGE))
+        # robots_txt_status (string like "accessible")
+        robots_txt_status = crawler_access.get("robots_txt_status", "")
+        if robots_txt_status:
+            allowed = "accessible" in str(robots_txt_status).lower()
+            crawler_checks.append(("robots.txt AI Crawlers", "All AI crawlers permitted", robots_txt_status.title(), "✓" if allowed else "!", GREEN if allowed else ORANGE))
 
+        # llms_txt (dict with status and platform)
         llms = crawler_access.get("llms_txt", {})
         if llms:
-            crawler_checks.append(("llms_txt", llms.get("platform", ""), llms.get("status", ""), "✓" if llms.get("status") == "HTTP 200" else "!", GREEN if llms.get("status") == "HTTP 200" else ORANGE))
+            status = llms.get("status", "missing")
+            platform = llms.get("platform", "llms.txt")
+            ok = status == "HTTP 200"
+            crawler_checks.append(("llms.txt", platform, status, "✓" if ok else "!", GREEN if ok else ORANGE))
 
-        geo = crawler_access.get("geo_blocking", {})
-        if geo:
-            crawler_checks.append(("geo_blocking", geo.get("platform", ""), geo.get("status", ""), "!" if "Restricted" in str(geo.get("status", "")) else "✓", ORANGE if "Restricted" in str(geo.get("status", "")) else GREEN))
-
-    # Also add from crawlers list if present
-    for crawler in crawlers[:6]:
-        name = crawler.get("name", "")
-        allowed = crawler.get("allowed", False)
-        if name not in [c[0] for c in crawler_checks]:
-            crawler_checks.append((name, "AI Crawler", "Allowed" if allowed else "Blocked", "✓" if allowed else "!", GREEN if allowed else RED_SOFT))
+        # ai_crawlers (dict of crawler_name -> allowed status)
+        ai_crawlers = crawler_access.get("ai_crawlers", {})
+        for crawler_name, status in ai_crawlers.items():
+            allowed = status in ("allowed", "Allowed", True)
+            crawler_checks.append((crawler_name, "AI Crawler", status.title(), "✓" if allowed else "!", GREEN if allowed else RED_SOFT))
 
     if not crawler_checks:
         crawler_checks = [
-            ("robots_txt_ai_crawlers", "All AI crawlers permitted", "Allowed", "✓", GREEN),
-            ("llms_txt", "Comprehensive content", "HTTP 200", "✓", GREEN),
-            ("geo_blocking", "Site accessibility", "Check needed", "!", ORANGE),
+            ("robots.txt AI Crawlers", "All AI crawlers permitted", "Allowed", "✓", GREEN),
+            ("llms.txt", "llms.txt file", "Not present", "!", ORANGE),
+            ("AI Crawlers", "Site accessibility", "Check needed", "!", ORANGE),
         ]
 
     draw_rect(c, 18*mm, y - 2, W - 36*mm, 16, fill=DARK_BLUE, radius=3)
@@ -984,8 +988,9 @@ def draw_page4(c, data):
     for finding in findings[:6]:  # Limit to 6 findings
         if isinstance(finding, dict):
             sev = finding.get("severity", "medium").upper()
-            title = finding.get("title", "")
-            desc = finding.get("description", "")
+            # Data uses 'category' and 'finding' keys
+            title = finding.get("category", finding.get("title", ""))
+            desc = finding.get("finding", finding.get("description", ""))
         else:
             sev = "MEDIUM"
             title = str(finding)
