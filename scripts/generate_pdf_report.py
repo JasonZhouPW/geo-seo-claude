@@ -631,76 +631,78 @@ def draw_page2(c, data):
         status_pill(c, cx + card_w - 58, cy + 16, status, w=50, h=12)
 
     # ── GEO IMPRESSION SCORE ────────────────────────────────────────────────
-    if impression_score > 0:
-        y -= 10
-        y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
-        y -= 14
-
-        # Score card
-        card_w = W - 36*mm
-        card_h = 58  # Increased height for 3 metrics with proper spacing
-        draw_rect(c, 18*mm, y - card_h, card_w, card_h, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
-        y -= 10
-
-        # Combined score
-        c.saveState()
-        c.setFont("Helvetica-Bold", 28)
-        c.setFillColor(GREEN)
-        c.drawString(24*mm, y - 20, f"{impression_score}")
-        c.setFont("Helvetica", 14)
-        c.setFillColor(TEXT_MID)
-        c.drawString(24*mm + 35, y - 12, "/100")
-        c.setFont("Helvetica-Bold", 10)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(24*mm + 70, y - 10, "Combined Impression Score")
-        c.restoreState()
-
-        # Metrics - table layout with separate columns
-        col1_x = 112*mm   # Label column
-        col2_x = 156*mm   # Value column (more space for long labels)
-        row_h = 13        # Height per row
-        c.saveState()
-        # Row 1: Position Score
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y, "Position Score:")
-        c.setFont("Helvetica", 8)
-        c.setFillColor(TEXT_MID)
-        c.drawString(col2_x, y, f"{int(impression_position * 100)}/100")
-        # Row 2: Word Count
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y - row_h, "Word Count:")
-        c.setFont("Helvetica", 8)
-        c.setFillColor(TEXT_MID)
-        c.drawString(col2_x, y - row_h, f"{int(impression_word_count * 100)}/100")
-        # Row 3: Citations
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColor(TEXT_DARK)
-        c.drawString(col1_x, y - row_h * 2, "Citations:")
-        c.setFont("Helvetica", 8)
-        c.setFillColor(TEXT_MID)
-        c.drawString(col2_x, y - row_h * 2, f"{citation_count}")
-        c.restoreState()
-
-        y -= 66
-
-        # Recommendations
-        if impression_recommendations:
-            y -= 6
-            c.saveState()
-            c.setFont("Helvetica-Bold", 8)
-            c.setFillColor(TEXT_DARK)
-            c.drawString(18*mm, y, "Recommendations:")
-            c.restoreState()
-            y -= 14
-            for rec in impression_recommendations[:2]:
-                c.saveState()
-                c.setFont("Helvetica", 7.5)
-                c.setFillColor(TEXT_MID)
-                c.drawString(22*mm, y, f"• {rec[:80]}")
-                c.restoreState()
-                y -= 12
+    # TEMPORARILY DISABLED - layout issue with metrics overlapping
+    # TODO: Fix column alignment - values drawn on top of labels
+    # if impression_score > 0:
+    #     y -= 10
+    #     y = section_header(c, y, "GEO Impression Score", "Measured visibility in LLM-generated answers")
+    #     y -= 14
+    #
+    #     # Score card
+    #     card_w = W - 36*mm
+    #     card_h = 58
+    #     draw_rect(c, 18*mm, y - card_h, card_w, card_h, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
+    #     y -= 10
+    #
+    #     # Combined score
+    #     c.saveState()
+    #     c.setFont("Helvetica-Bold", 28)
+    #     c.setFillColor(GREEN)
+    #     c.drawString(24*mm, y - 20, f"{impression_score}")
+    #     c.setFont("Helvetica", 14)
+    #     c.setFillColor(TEXT_MID)
+    #     c.drawString(24*mm + 35, y - 12, "/100")
+    #     c.setFont("Helvetica-Bold", 10)
+    #     c.setFillColor(TEXT_DARK)
+    #     c.drawString(24*mm + 70, y - 10, "Combined Impression Score")
+    #     c.restoreState()
+    #
+    #     # Metrics - table layout with separate columns
+    #     col1_x = 112*mm   # Label column
+    #     col2_x = 156*mm   # Value column
+    #     row_h = 13        # Height per row
+    #     c.saveState()
+    #     # Row 1: Position Score
+    #     c.setFont("Helvetica-Bold", 8)
+    #     c.setFillColor(TEXT_DARK)
+    #     c.drawString(col1_x, y, "Position Score:")
+    #     c.setFont("Helvetica", 8)
+    #     c.setFillColor(TEXT_MID)
+    #     c.drawString(col2_x, y, f"{int(impression_position * 100)}/100")
+    #     # Row 2: Word Count
+    #     c.setFont("Helvetica-Bold", 8)
+    #     c.setFillColor(TEXT_DARK)
+    #     c.drawString(col1_x, y - row_h, "Word Count:")
+    #     c.setFont("Helvetica", 8)
+    #     c.setFillColor(TEXT_MID)
+    #     c.drawString(col2_x, y - row_h, f"{int(impression_word_count * 100)}/100")
+    #     # Row 3: Citations
+    #     c.setFont("Helvetica-Bold", 8)
+    #     c.setFillColor(TEXT_DARK)
+    #     c.drawString(col1_x, y - row_h * 2, "Citations:")
+    #     c.setFont("Helvetica", 8)
+    #     c.setFillColor(TEXT_MID)
+    #     c.drawString(col2_x, y - row_h * 2, f"{citation_count}")
+    #     c.restoreState()
+    #
+    #     y -= 66
+    #
+    #     # Recommendations
+    #     if impression_recommendations:
+    #         y -= 6
+    #         c.saveState()
+    #         c.setFont("Helvetica-Bold", 8)
+    #         c.setFillColor(TEXT_DARK)
+    #         c.drawString(18*mm, y, "Recommendations:")
+    #         c.restoreState()
+    #         y -= 14
+    #         for rec in impression_recommendations[:2]:
+    #             c.saveState()
+    #             c.setFont("Helvetica", 7.5)
+    #             c.setFillColor(TEXT_MID)
+    #             c.drawString(22*mm, y, f"• {rec[:80]}")
+    #             c.restoreState()
+    #             y -= 12
 
     page_footer(c, 2, 5, url, brand_name)
     c.showPage()
