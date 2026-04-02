@@ -299,9 +299,9 @@ def draw_cover(c, data):
 
     # Subtitle
     c.saveState()
-    c.setFont("Helvetica", 12)
-    c.setFillColor(colors.HexColor("#A0B4C8"))
     font_reg, font_bold = get_font_for_text()
+    c.setFont(font_reg, 12)
+    c.setFillColor(colors.HexColor("#A0B4C8"))
     # Truncate long brand names for display
     display_brand = brand_name if len(brand_name) <= 40 else brand_name[:37] + "..."
     c.drawString(18*mm, H - 78*mm, f"for {display_brand}")
