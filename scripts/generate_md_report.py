@@ -54,6 +54,12 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     citation_count = geo_impression.get("citation_count", 0)
     impression_recommendations = geo_impression.get("recommendations", [])
 
+    # GEU Score
+    geu_data = data.get("geu_score", {})
+    geu_overall = geu_data.get("overall_quality_score", 0) if geu_data else 0
+    geu_dimensions = geu_data.get("quality_dimensions", {}) if geu_data else {}
+    geu_citation_recall = geu_data.get("citation_metrics", {}).get("citation_recall", 0) if geu_data else 0
+
     # Get score label
     def get_score_label(score):
         if score >= 85: return "Excellent"
@@ -95,7 +101,10 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append(f"| Technical Foundations | {technical}/100 | 🟢 Good |")
     md.append(f"| Structured Data | {schema_score}/100 | 🟢 Good |")
     md.append(f"| Platform Optimization | {platform_optimization}/100 | 🟢 Good |")
-    md.append(f"| **GEO Impression Score** | **{impression_score}/100** | 🟢 {'Measured' if impression_score > 0 else 'Not Measured'} |")
+    if geu_overall > 0:
+        md.append(f"| **GEU Quality Score** | **{int(geu_overall * 100)}/100** | 🟢 Measured |")
+    if impression_score > 0:
+        md.append(f"| **GEO Impression Score** | **{impression_score}/100** | 🟢 Measured |")
     md.append("")
     md.append("---")
     md.append("")
@@ -107,7 +116,32 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append(f"Overall GEO Score: {geo_score}/100")
     md.append("")
 
-    if impression_score > 0:
+    if geu_overall > 0 and impression_score > 0:
+        # 8-category weights with GEU and GEO Impression
+        md.append(f"├── AI Citability & Visibility  [20%] → {ai_citability}/100 ({ai_citability * 0.20:.1f} pts)")
+        md.append(f"├── Brand Authority Signals      [15%] → {brand_authority}/100 ({brand_authority * 0.15:.1f} pts)")
+        md.append(f"├── Content Quality & E-E-A-T  [10%] → {content_eeat}/100 ({content_eeat * 0.10:.1f} pts)")
+        md.append(f"├── GEU Quality Score         [15%] → {int(geu_overall*100)}/100 ({geu_overall * 0.15 * 100:.1f} pts)")
+        md.append(f"├── Technical Foundations       [13%] → {technical}/100 ({technical * 0.13:.1f} pts)")
+        md.append(f"├── Structured Data           [10%] → {schema_score}/100 ({schema_score * 0.10:.1f} pts)")
+        md.append(f"├── Platform Optimization     [10%] → {platform_optimization}/100 ({platform_optimization * 0.10:.1f} pts)")
+        md.append(f"└── GEO Impression Score      [7%] → {impression_score}/100 ({impression_score * 0.07:.1f} pts)")
+        md.append(f"                                        ─────────────")
+        total = ai_citability*0.20 + brand_authority*0.15 + content_eeat*0.10 + geu_overall*0.15*100 + technical*0.13 + schema_score*0.10 + platform_optimization*0.10 + impression_score*0.07
+        md.append(f"                                        Total: {total:.1f} → {geo_score}/100")
+    elif geu_overall > 0:
+        # 7-category weights with GEU (no GEO Impression)
+        md.append(f"├── AI Citability & Visibility  [22%] → {ai_citability}/100 ({ai_citability * 0.22:.1f} pts)")
+        md.append(f"├── Brand Authority Signals      [18%] → {brand_authority}/100 ({brand_authority * 0.18:.1f} pts)")
+        md.append(f"├── Content Quality & E-E-A-T  [12%] → {content_eeat}/100 ({content_eeat * 0.12:.1f} pts)")
+        md.append(f"├── GEU Quality Score         [18%] → {int(geu_overall*100)}/100 ({geu_overall * 0.18 * 100:.1f} pts)")
+        md.append(f"├── Technical Foundations       [13%] → {technical}/100 ({technical * 0.13:.1f} pts)")
+        md.append(f"├── Structured Data           [8%] → {schema_score}/100 ({schema_score * 0.08:.1f} pts)")
+        md.append(f"└── Platform Optimization    [9%] → {platform_optimization}/100 ({platform_optimization * 0.09:.1f} pts)")
+        md.append(f"                                        ─────────────")
+        total = ai_citability*0.22 + brand_authority*0.18 + content_eeat*0.12 + geu_overall*0.18*100 + technical*0.13 + schema_score*0.08 + platform_optimization*0.09
+        md.append(f"                                        Total: {total:.1f} → {geo_score}/100")
+    elif impression_score > 0:
         # Updated weights with GEO Impression Score
         md.append(f"├── AI Citability & Visibility  [22%] → {ai_citability}/100 ({ai_citability * 0.22:.1f} pts)")
         md.append(f"├── Brand Authority Signals      [18%] → {brand_authority}/100 ({brand_authority * 0.18:.1f} pts)")
@@ -231,6 +265,30 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
         status = "Good" if score >= 70 else "Moderate"
         md.append(f"| **{platform}** | {score}/100 | 🟢 {status} |")
     md.append("")
+
+    # GEU Quality Score Section
+    if geu_overall > 0:
+        section_num = 7 if impression_score == 0 else 8
+        md.append(f"### {section_num}. GEU Quality Score — {int(geu_overall * 100)}/100 🟢")
+        md.append("")
+        md.append("| Dimension | Score | Description |")
+        md.append("|-----------|-------|-------------|")
+        clarity = geu_dimensions.get("clarity", 0)
+        depth = geu_dimensions.get("depth", 0)
+        balance = geu_dimensions.get("balance", 0)
+        breadth = geu_dimensions.get("breadth", 0)
+        support = geu_dimensions.get("support", 0)
+        insightfulness = geu_dimensions.get("insightfulness", 0)
+        md.append(f"| **Clarity** | {int(clarity * 100)}/100 | Structure, logic flow, lack of redundancy |")
+        md.append(f"| **Depth** | {int(depth * 100)}/100 | Analytical depth, critical thinking |")
+        md.append(f"| **Balance** | {int(balance * 100)}/100 | Fairness, objectivity, multiple perspectives |")
+        md.append(f"| **Breadth** | {int(breadth * 100)}/100 | Coverage of relevant subtopics |")
+        md.append(f"| **Support** | {int(support * 100)}/100 | Claims substantiated with evidence |")
+        md.append(f"| **Insightfulness** | {int(insightfulness * 100)}/100 | Originality, actionable recommendations |")
+        md.append(f"| **Citation Recall** | {int(geu_citation_recall * 100)}/100 | Claims with source citations |")
+        md.append("")
+        md.append(f"*GEU Score measures content quality using LLM-based evaluation across 6 dimensions.*")
+        md.append("")
 
     # GEO Impression Score Section
     if impression_score > 0:

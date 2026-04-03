@@ -266,6 +266,11 @@ def draw_cover(c, data):
     geo_impression = data.get("geo_impression_score", {})
     impression_score = int(geo_impression.get("combined_score", 0) * 100) if geo_impression else 0
 
+    # GEU Score
+    geu_data = data.get("geu_score", {})
+    geu_overall = geu_data.get("overall_quality_score", 0) if geu_data else 0
+    geu_score_int = int(geu_overall * 100) if geu_overall else 0
+
     # Format date
     if "-" in date:
         try:
@@ -403,11 +408,19 @@ def draw_cover(c, data):
         ("Technical", technical),
         ("Structured Data", schema_score),
         ("Platform Opt.", platform_optimization),
-        ("GEO Impression", impression_score),
     ]
+    # Add optional components
+    if geu_score_int > 0:
+        comps.append(("GEU Quality", geu_score_int))
+    if impression_score > 0:
+        comps.append(("GEO Impression", impression_score))
+
+    num_comps = len(comps)
     cx_start = 18*mm + 6
     cy2 = sy + 10*mm
-    cw = (W - 36*mm - 12) / 7  # 7 components now
+    cw = (W - 36*mm - 12) / num_comps
+    font_size = 7.5 if num_comps <= 7 else 6.5
+    label_font = 5.5 if num_comps <= 7 else 4.5
     for i, (name, sc) in enumerate(comps):
         bx = cx_start + i * cw
         # mini gauge
@@ -416,10 +429,10 @@ def draw_cover(c, data):
         col = ACCENT if sc >= 70 else GOLD if sc >= 50 else ORANGE
         draw_rect(c, bx + 2, cy2, fill_w, 8, fill=col, radius=2)
         c.saveState()
-        c.setFont("Helvetica-Bold", 7.5)
+        c.setFont("Helvetica-Bold", font_size)
         c.setFillColor(NAVY)
         c.drawCentredString(bx + cw/2 - 2, cy2 + 11, f"{sc}")
-        c.setFont("Helvetica", 5.5)  # Smaller font for 7 components
+        c.setFont("Helvetica", label_font)
         c.setFillColor(TEXT_LIGHT)
         c.drawCentredString(bx + cw/2 - 2, cy2 - 8, name)
         c.restoreState()
@@ -489,6 +502,12 @@ def draw_page2(c, data):
     citation_count = geo_impression.get("citation_count", 0)
     impression_recommendations = geo_impression.get("recommendations", [])
 
+    # GEU Score
+    geu_data = data.get("geu_score", {})
+    geu_overall = geu_data.get("overall_quality_score", 0) if geu_data else 0
+    geu_score_int = int(geu_overall * 100) if geu_overall else 0
+    geu_dimensions = geu_data.get("quality_dimensions", {}) if geu_data else {}
+
     y = H - 20*mm
 
     # Page header strip
@@ -511,49 +530,52 @@ def draw_page2(c, data):
     # Calculate weighted points
     score_breakdown = data.get("score_breakdown", {})
 
-    if impression_score > 0:
-        # Updated weights with GEO Impression Score (14%)
-        if score_breakdown:
-            comps_data = [
-                ("AI Citability & Visibility",  ai_citability, 22, score_breakdown.get("ai_citability", {}).get("points", ai_citability * 0.22)),
-                ("Brand Authority Signals",     brand_authority, 18, score_breakdown.get("brand_authority", {}).get("points", brand_authority * 0.18)),
-                ("Content Quality & E-E-A-T",   content_eeat, 18, score_breakdown.get("content_quality", {}).get("points", content_eeat * 0.18)),
-                ("Technical Foundations",       technical, 12, score_breakdown.get("technical", {}).get("points", technical * 0.12)),
-                ("Structured Data",             schema_score, 8, score_breakdown.get("structured_data", {}).get("points", schema_score * 0.08)),
-                ("Platform Optimization",       platform_opt, 8, score_breakdown.get("platform_optimization", {}).get("points", platform_opt * 0.08)),
-                ("GEO Impression Score",        impression_score, 14, impression_score * 0.14),
-            ]
-        else:
-            comps_data = [
-                ("AI Citability & Visibility",  ai_citability, 22, ai_citability * 0.22),
-                ("Brand Authority Signals",     brand_authority, 18, brand_authority * 0.18),
-                ("Content Quality & E-E-A-T",   content_eeat, 18, content_eeat * 0.18),
-                ("Technical Foundations",       technical, 12, technical * 0.12),
-                ("Structured Data",             schema_score, 8, schema_score * 0.08),
-                ("Platform Optimization",       platform_opt, 8, platform_opt * 0.08),
-                ("GEO Impression Score",        impression_score, 14, impression_score * 0.14),
-            ]
+    # Build component data based on which scores are available
+    if geu_score_int > 0 and impression_score > 0:
+        # Both GEU and GEO Impression - 8 categories with special weights
+        base_weights = {"ai_cit": 20, "brand": 15, "eeat": 10, "geu": 15, "tech": 13, "schema": 10, "platform": 10, "impression": 7}
+        comps_data = [
+            ("AI Citability & Visibility", ai_citability, base_weights["ai_cit"], ai_citability * 0.20),
+            ("Brand Authority Signals", brand_authority, base_weights["brand"], brand_authority * 0.15),
+            ("Content Quality & E-E-A-T", content_eeat, base_weights["eeat"], content_eeat * 0.10),
+            ("GEU Quality Score", geu_score_int, base_weights["geu"], geu_score_int * 0.15),
+            ("Technical Foundations", technical, base_weights["tech"], technical * 0.13),
+            ("Structured Data", schema_score, base_weights["schema"], schema_score * 0.10),
+            ("Platform Optimization", platform_opt, base_weights["platform"], platform_opt * 0.10),
+            ("GEO Impression Score", impression_score, base_weights["impression"], impression_score * 0.07),
+        ]
+    elif geu_score_int > 0:
+        # Only GEU - 7 categories
+        comps_data = [
+            ("AI Citability & Visibility", ai_citability, 22, ai_citability * 0.22),
+            ("Brand Authority Signals", brand_authority, 18, brand_authority * 0.18),
+            ("Content Quality & E-E-A-T", content_eeat, 12, content_eeat * 0.12),
+            ("GEU Quality Score", geu_score_int, 18, geu_score_int * 0.18),
+            ("Technical Foundations", technical, 13, technical * 0.13),
+            ("Structured Data", schema_score, 8, schema_score * 0.08),
+            ("Platform Optimization", platform_opt, 9, platform_opt * 0.09),
+        ]
+    elif impression_score > 0:
+        # Only GEO Impression - 7 categories
+        comps_data = [
+            ("AI Citability & Visibility", ai_citability, 22, ai_citability * 0.22),
+            ("Brand Authority Signals", brand_authority, 18, brand_authority * 0.18),
+            ("Content Quality & E-E-A-T", content_eeat, 18, content_eeat * 0.18),
+            ("Technical Foundations", technical, 12, technical * 0.12),
+            ("Structured Data", schema_score, 8, schema_score * 0.08),
+            ("Platform Optimization", platform_opt, 8, platform_opt * 0.08),
+            ("GEO Impression Score", impression_score, 14, impression_score * 0.14),
+        ]
     else:
-        if score_breakdown:
-            comps_data = [
-                ("AI Citability & Visibility",  ai_citability, 25, score_breakdown.get("ai_citability", {}).get("points", ai_citability * 0.25)),
-                ("Brand Authority Signals",     brand_authority, 20, score_breakdown.get("brand_authority", {}).get("points", brand_authority * 0.20)),
-                ("Content Quality & E-E-A-T",   content_eeat, 20, score_breakdown.get("content_quality", {}).get("points", content_eeat * 0.20)),
-                ("Technical Foundations",       technical, 15, score_breakdown.get("technical", {}).get("points", technical * 0.15)),
-                ("Structured Data",             schema_score, 10, score_breakdown.get("structured_data", {}).get("points", schema_score * 0.10)),
-                ("Platform Optimization",       platform_opt, 10, score_breakdown.get("platform_optimization", {}).get("points", platform_opt * 0.10)),
-                ("GEO Impression Score",        impression_score, 0, 0),
-            ]
-        else:
-            comps_data = [
-                ("AI Citability & Visibility",  ai_citability, 25, ai_citability * 0.25),
-                ("Brand Authority Signals",     brand_authority, 20, brand_authority * 0.20),
-                ("Content Quality & E-E-A-T",   content_eeat, 20, content_eeat * 0.20),
-                ("Technical Foundations",       technical, 15, technical * 0.15),
-                ("Structured Data",             schema_score, 10, schema_score * 0.10),
-                ("Platform Optimization",       platform_opt, 10, platform_opt * 0.10),
-                ("GEO Impression Score",        impression_score, 0, 0),
-            ]
+        # Neither - 6 categories
+        comps_data = [
+            ("AI Citability & Visibility", ai_citability, 25, ai_citability * 0.25),
+            ("Brand Authority Signals", brand_authority, 20, brand_authority * 0.20),
+            ("Content Quality & E-E-A-T", content_eeat, 20, content_eeat * 0.20),
+            ("Technical Foundations", technical, 15, technical * 0.15),
+            ("Structured Data", schema_score, 10, schema_score * 0.10),
+            ("Platform Optimization", platform_opt, 10, platform_opt * 0.10),
+        ]
 
     comps = []
     for name, score, wt, weighted in comps_data:
@@ -751,6 +773,78 @@ def draw_page2(c, data):
             c.drawString(22*mm, y, f"• {rec[:80]}")
             c.restoreState()
             y -= 12
+
+    # ── GEU QUALITY SCORE ─────────────────────────────────────────────────
+    if geu_score_int > 0:
+        y -= 10
+        y = section_header(c, y, "GEU Quality Score", "LLM-based content quality evaluation")
+        y -= 14
+
+        # GEU dimensions as metric cards
+        geu_dims = [
+            ("Clarity", geu_dimensions.get("clarity", 0), "Structure, logic flow"),
+            ("Depth", geu_dimensions.get("depth", 0), "Analytical depth"),
+            ("Balance", geu_dimensions.get("balance", 0), "Fairness, objectivity"),
+            ("Breadth", geu_dimensions.get("breadth", 0), "Subtopic coverage"),
+            ("Support", geu_dimensions.get("support", 0), "Evidence-backed claims"),
+            ("Insight", geu_dimensions.get("insightfulness", 0), "Originality, actionability"),
+        ]
+
+        dim_card_w = (W - 36*mm - 10) / 6
+        dim_card_h = 35
+
+        for i, (label, score, desc) in enumerate(geu_dims):
+            score_int = int(score * 100) if score else 0
+            cx = 18*mm + i * (dim_card_w + 2)
+            cy = y - dim_card_h
+
+            draw_rect(c, cx, cy, dim_card_w, dim_card_h, fill=WHITE, stroke=BORDER, radius=4, lw=0.5)
+
+            c.saveState()
+            c.setFont("Helvetica-Bold", 6.5)
+            c.setFillColor(TEXT_DARK)
+            c.drawCentredString(cx + dim_card_w/2, cy + dim_card_h - 8, label)
+            c.restoreState()
+
+            c.saveState()
+            c.setFont("Helvetica-Bold", 10)
+            c.setFillColor(ACCENT)
+            c.drawCentredString(cx + dim_card_w/2, cy + dim_card_h/2 - 3, f"{score_int}")
+            c.restoreState()
+
+            c.saveState()
+            c.setFont("Helvetica", 5)
+            c.setFillColor(TEXT_LIGHT)
+            c.drawCentredString(cx + dim_card_w/2, cy + 6, desc)
+            c.restoreState()
+
+        y -= dim_card_h + 15
+
+        # Overall GEU score badge
+        badge_w = 90
+        badge_h = 26
+        draw_rect(c, 18*mm, y - badge_h, badge_w, badge_h, fill=ACCENT, radius=4)
+        c.saveState()
+        c.setFont("Helvetica-Bold", 13)
+        c.setFillColor(WHITE)
+        c.drawCentredString(18*mm + badge_w/2, y - badge_h/2 + 3, f"{geu_score_int}/100")
+        c.restoreState()
+
+        c.saveState()
+        c.setFont("Helvetica", 9)
+        c.setFillColor(TEXT_MID)
+        c.drawString(18*mm + badge_w + 12, y - badge_h/2 + 4, "Overall GEU Quality Score")
+        c.restoreState()
+
+        y -= badge_h + 10
+
+        # Citation recall
+        citation_recall = geu_data.get("citation_metrics", {}).get("citation_recall", 0)
+        c.saveState()
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(18*mm, y, f"Citation Recall: {int(citation_recall * 100)}% (claims with source citations)")
+        c.restoreState()
 
     page_footer(c, 2, 5, url, brand_name)
     c.showPage()

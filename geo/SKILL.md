@@ -179,6 +179,19 @@ Launch these 5 subagents simultaneously:
 | Structured Data | 10% | Schema completeness, JSON-LD validation, rich result eligibility |
 | Platform Optimization | 10% | Platform-specific readiness (Google AIO, ChatGPT, Perplexity) |
 
+**When GEU Score is measured (7-category formula):**
+
+| Category | Weight | Measured By |
+|----------|--------|-------------|
+| AI Citability & Visibility | 20% | Passage scoring, answer block quality, AI crawler access |
+| Brand Authority Signals | 15% | Mentions on Reddit, YouTube, Wikipedia, LinkedIn; entity presence |
+| Content Quality & E-E-A-T | 10% | Expertise signals, original data, author credentials |
+| **GEU Quality Score** | **15%** | LLM-based content quality (Clarity, Depth, Balance, Breadth, Support, Insightfulness) |
+| Technical Foundations | 13% | SSR, Core Web Vitals, crawlability, mobile, security |
+| Structured Data | 10% | Schema completeness, JSON-LD validation, rich result eligibility |
+| Platform Optimization | 10% | Platform-specific readiness (Google AIO, ChatGPT, Perplexity) |
+| GEO Impression Score | 7% | LLM citation frequency, position, content length (when measured) |
+
 ---
 
 ## Business Type Detection
