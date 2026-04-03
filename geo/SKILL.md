@@ -40,6 +40,47 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo proposal <domain>` | Auto-generate client proposal from audit data |
 | `/geo compare <domain>` | Monthly delta report: show score improvements to client |
 | `/geo rewrite <url>` | Rewrite page content using AutoGEO rules for AI visibility |
+| `/geo evaluate <url>` | GEU (Generative Engine Utility) quality evaluation using LLM assessment |
+
+---
+
+## `/geo evaluate` — GEU Quality Evaluation
+
+Evaluate rewritten content quality using LLM-based assessment across 6 dimensions (Clarity, Depth, Balance, Breadth, Support, Insightfulness) and citation metrics.
+
+**Usage:**
+```
+/geo evaluate <url> [--provider openai|anthropic|claude] [--skip-rewrite] [--output result.json]
+```
+
+**Parameters:**
+- `url`: Target webpage URL
+- `--provider`: LLM provider to use (default: `openai`)
+- `--skip-rewrite`: Evaluate original content only (skip rewriting)
+- `--output`: Save results to JSON file
+
+**Examples:**
+```
+/geo evaluate https://example.com                    # Full evaluation with rewrite
+/geo evaluate https://example.com --skip-rewrite     # Evaluate original only
+/geo evaluate https://example.com --provider claude  # Use Claude for evaluation
+/geo evaluate https://example.com --output geu.json  # Save results
+```
+
+**GEU Score Dimensions:**
+| Dimension | Description |
+|-----------|-------------|
+| Clarity | Structure, logic flow, lack of redundancy |
+| Depth | Analytical depth, critical thinking |
+| Balance | Fairness, objectivity, multiple perspectives |
+| Breadth | Coverage of relevant subtopics |
+| Support | Claims substantiated with evidence |
+| Insightfulness | Originality, actionable recommendations |
+
+**Output:**
+- `quality_dimensions` — 6 dimension scores (0.0-1.0)
+- `citation_metrics` — claim extraction and citation recall
+- `overall_quality_score` — weighted average
 
 ---
 
@@ -212,6 +253,7 @@ All commands generate structured output:
 | `/geo proposal` | `~/.geo-prospects/proposals/<domain>-proposal-<date>.md` |
 | `/geo compare` | `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` |
 | `/geo rewrite` | `rewrite-prompt.md` (rewrite prompt for LLM) |
+| `/geo evaluate` | `geu-evaluation.json` (quality scores + citation metrics) |
 
 ---
 
@@ -283,4 +325,9 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 
 # Rewrite content for AI visibility
 /geo rewrite https://example.com
+
+# Evaluate content quality with GEU scores (requires API key)
+/geo evaluate https://example.com
+/geo evaluate https://example.com --skip-rewrite
+/geo evaluate https://example.com --provider claude --output geu.json
 ```

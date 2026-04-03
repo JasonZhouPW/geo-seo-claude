@@ -403,6 +403,43 @@ curl -sL https://raw.githubusercontent.com/zubair-trabzada/geo-seo-claude/main/i
 
 ---
 
+### `/geo evaluate <url>`
+
+**GEU（Generative Engine Utility）质量评估 — 使用 LLM 进行内容质量评估。**
+
+评估重写内容在6个维度上的质量（清晰度、深度、平衡性、广度、支持度、洞察力）和引用指标。
+
+**需要：** API密钥（`OPENAI_API_KEY` 或 `ANTHROPIC_API_KEY`）
+
+| 参数 | 默认值 | 描述 |
+|------|--------|------|
+| `--provider` | `openai` | LLM提供商（`openai`、`anthropic`、`claude`）|
+| `--skip-rewrite` | — | 仅评估原始内容 |
+| `--output` | — | 将结果保存为JSON文件 |
+
+```bash
+# 完整评估（含重写）
+/geo evaluate https://bigmodel.cn
+
+# 仅评估原始内容
+/geo evaluate https://bigmodel.cn --skip-rewrite
+
+# 使用Claude进行评估
+/geo evaluate https://bigmodel.cn --provider claude --output geu.json
+```
+
+**GEU 评分维度：**
+- **清晰度（Clarity）** — 结构、逻辑流程、避免冗余
+- **深度（Depth）** — 分析深度、批判性思维
+- **平衡性（Balance）** — 公平性、客观性、多种视角
+- **广度（Breadth）** — 相关子主题的覆盖范围
+- **支持度（Support）** — 用证据支持论断
+- **洞察力（Insightfulness）** — 原创性、可操作的建议
+
+**注意：** 此命令需要LLM API访问权限，会产生费用。
+
+---
+
 ### `/geo prospect <cmd>`
 
 **轻量级 CRM — 管理销售管道中的潜在客户。**

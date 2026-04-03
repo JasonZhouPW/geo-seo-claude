@@ -403,6 +403,43 @@ Generates a rewrite prompt that can be fed to an LLM to optimize content for AI 
 
 ---
 
+### `/geo evaluate <url>`
+
+**GEU (Generative Engine Utility) quality evaluation using LLM assessment.**
+
+Evaluates rewritten content quality across 6 dimensions (Clarity, Depth, Balance, Breadth, Support, Insightfulness) and citation metrics.
+
+**Requires:** API key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`)
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--provider` | `openai` | LLM provider (`openai`, `anthropic`, `claude`) |
+| `--skip-rewrite` | — | Evaluate original content only |
+| `--output` | — | Save results to JSON file |
+
+```bash
+# Full evaluation with rewrite
+/geo evaluate https://bigmodel.cn
+
+# Evaluate original content only
+/geo evaluate https://bigmodel.cn --skip-rewrite
+
+# Use Claude for evaluation
+/geo evaluate https://bigmodel.cn --provider claude --output geu.json
+```
+
+**GEU Score Dimensions:**
+- **Clarity** — Structure, logic flow, lack of redundancy
+- **Depth** — Analytical depth, critical thinking
+- **Balance** — Fairness, objectivity, multiple perspectives
+- **Breadth** — Coverage of relevant subtopics
+- **Support** — Claims substantiated with evidence
+- **Insightfulness** — Originality, actionable recommendations
+
+**Note:** This command requires LLM API access and may incur costs.
+
+---
+
 ### `/geo prospect <cmd>`
 
 **CRM-lite for managing prospects through the sales pipeline.**
