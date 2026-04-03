@@ -149,8 +149,17 @@ class GEUClient:
                     messages=[{"role": "user", "content": prompt}]
                 )
                 for block in response.content:
+                    # Skip thinking blocks
+                    if hasattr(block, 'thinking'):
+                        continue
                     if hasattr(block, 'text'):
-                        return json.loads(block.text)
+                        text = block.text.strip()
+                        # Handle JSON in code blocks
+                        if text.startswith("```"):
+                            lines = text.split("\n")
+                            json_lines = [l for l in lines if not l.startswith("```")]
+                            text = "\n".join(json_lines)
+                        return json.loads(text)
                 return None
         except Exception as e:
             print(f"Error calling LLM: {e}")
@@ -183,7 +192,44 @@ class GEUClient:
 
 
 def fetch_page_content(url: str, timeout: int = 30) -> Tuple[str, str]:
-    """Fetch and extract text content from a webpage."""
+    """Fetch and extract text content from a webpage using Playwright for JS rendering."""
+
+    # Try Playwright first for JavaScript-rendered sites
+    try:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, wait_until="networkidle", timeout=timeout * 1000)
+
+            # Extract title
+            title_text = page.title()
+
+            # Get main content
+            content = page.evaluate("""
+                () => {
+                    const main = document.querySelector('main') || document.querySelector('article') || document.body;
+                    // Remove unwanted elements
+                    const toRemove = main.querySelectorAll('script, style, nav, header, footer, aside, .nav, .footer, .header, .menu, .sidebar');
+                    toRemove.forEach(el => el.remove());
+                    return main ? main.innerText : document.body.innerText;
+                }
+            """)
+
+            browser.close()
+
+            # Clean up whitespace
+            lines = [line.strip() for line in content.split("\n") if line.strip()]
+            text = "\n".join(lines)
+
+            return title_text, text[:10000]
+    except ImportError:
+        pass  # Fall back to requests
+    except Exception as e:
+        pass  # Fall back to requests
+
+    # Fall back to requests for non-JS sites
     if not HAS_REQUESTS:
         raise ImportError("requests package not installed. Run: pip install requests")
 
