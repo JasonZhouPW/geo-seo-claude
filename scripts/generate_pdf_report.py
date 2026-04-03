@@ -1108,9 +1108,9 @@ def draw_page4(c, data):
     for finding in findings[:6]:  # Limit to 6 findings
         if isinstance(finding, dict):
             sev = finding.get("severity", "medium").upper()
-            # Data uses 'category' and 'finding' keys
+            # Data uses 'category' and 'issue'/'detail' keys
             title = finding.get("category", finding.get("title", ""))
-            desc = finding.get("finding", finding.get("description", ""))
+            desc = finding.get("issue", finding.get("finding", finding.get("description", "")))
         else:
             sev = "MEDIUM"
             title = str(finding)

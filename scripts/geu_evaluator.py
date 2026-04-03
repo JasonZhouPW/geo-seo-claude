@@ -201,7 +201,7 @@ def fetch_page_content(url: str, timeout: int = 30) -> Tuple[str, str]:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
-            page.goto(url, wait_until="networkidle", timeout=timeout * 1000)
+            page.goto(url, wait_until="load", timeout=timeout * 1000)
 
             # Extract title
             title_text = page.title()

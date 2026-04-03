@@ -177,19 +177,36 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append("")
     md.append("| Factor | Status | Details |")
     md.append("|--------|--------|---------|")
-    md.append("| **AI Crawler Access** | ✅ Excellent | All AI crawlers allowed in robots.txt |")
+    # Iterate over all crawler access items
+    for crawler, info in crawler_access.items():
+        # Skip ai_crawlers as it's handled separately below
+        if crawler == "ai_crawlers":
+            continue
+        if isinstance(info, dict):
+            status = info.get("status", "unknown")
+            detail = info.get("detail", info.get("platform", ""))
+            if status == "HTTP 200" or status == "allowed":
+                md.append(f"| **{crawler.upper()}** | ✅ Allowed | {detail} |")
+            elif status == "blocked":
+                md.append(f"| **{crawler.upper()}** | ❌ Blocked | {detail} |")
+            elif status == "not_found":
+                md.append(f"| **{crawler.upper()}** | ❌ Not Found | {detail} |")
+            else:
+                md.append(f"| **{crawler.upper()}** | ⚠️ {status} | {detail} |")
+        else:
+            md.append(f"| **{crawler.upper()}** | ⚠️ {info} |")
 
-    llms_txt = crawler_access.get("llms_txt", {})
-    if llms_txt.get("status") == "HTTP 200":
-        md.append("| **llms.txt** | ✅ Present | HTTP 200, comprehensive content |")
-    elif llms_txt.get("status"):
-        md.append(f"| **llms.txt** | ⚠️ {llms_txt.get('status')} | Check configuration |")
-    else:
-        md.append("| **llms.txt** | ❌ Missing | No dedicated llms.txt file |")
+    # Handle ai_crawlers nested items
+    ai_crawlers = crawler_access.get("ai_crawlers", {})
+    for crawler, status in ai_crawlers.items():
+        status_str = str(status) if status else "unknown"
+        if status_str in ("allowed", "Allowed", "true", True):
+            md.append(f"| **{crawler.upper()}** | ✅ Allowed | AI crawler |")
+        elif status_str in ("blocked", "Blocked", "false", False):
+            md.append(f"| **{crawler.upper()}** | ❌ Blocked | AI crawler |")
+        else:
+            md.append(f"| **{crawler.upper()}** | ⚠️ {status_str} | AI crawler |")
 
-    md.append("| **Passage Quality** | ✅ Good | Rich content with statistics |")
-    md.append("| **Content Volume** | ✅ Good | Substantial text content |")
-    md.append("| **Wikipedia Presence** | ⚠️ Missing | Authority gap for AI |")
     md.append("")
 
     # Brand Authority
@@ -202,7 +219,13 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
         md.append("| Platform | Presence | Handle/URL |")
         md.append("|----------|----------|------------|")
         for platform, info in international_platforms.items():
-            presence = "✅ Present" if info.get("present") else "❌ Missing"
+            present = info.get("present", False)
+            if str(present).lower() == "true":
+                presence = "✅ Present"
+            elif str(present).lower() == "unknown":
+                presence = "⚠️ Unknown"
+            else:
+                presence = "❌ Missing"
             handle = info.get("handle", "")
             md.append(f"| {platform} | {presence} | {handle} |")
         md.append("")
@@ -215,7 +238,13 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
         md.append("| Platform | Presence | Handle/URL |")
         md.append("|----------|----------|------------|")
         for platform, info in cn_platforms.items():
-            presence = "✅ Present" if info.get("present") else "❌ Missing"
+            present = info.get("present", False)
+            if str(present).lower() == "true":
+                presence = "✅ Present"
+            elif str(present).lower() == "unknown":
+                presence = "⚠️ Unknown"
+            else:
+                presence = "❌ Missing"
             handle = info.get("handle", "")
             md.append(f"| {platform} | {presence} | {handle} |")
         md.append("")
@@ -262,8 +291,9 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
     md.append("| Platform | Score | Status |")
     md.append("|----------|-------|--------|")
     for platform, score in platforms.items():
-        status = "Good" if score >= 70 else "Moderate"
-        md.append(f"| **{platform}** | {score}/100 | 🟢 {status} |")
+        s = score if isinstance(score, int) else score.get("score", 0)
+        status = "Good" if s >= 70 else "Moderate"
+        md.append(f"| **{platform}** | {s}/100 | 🟢 {status} |")
     md.append("")
 
     # GEU Quality Score Section
@@ -304,6 +334,21 @@ def generate_md_report(data, output_path="GEO-REPORT.md"):
         md.append("**Recommendations:**")
         for rec in impression_recommendations[:3]:
             md.append(f"- {rec}")
+        md.append("")
+
+    # Key Findings
+    if findings:
+        md.append("## Key Findings")
+        md.append("")
+        md.append("| Category | Severity | Issue |")
+        md.append("|---------|----------|-------|")
+        for finding in findings:
+            category = finding.get("category", "N/A")
+            severity = finding.get("severity", "N/A")
+            issue = finding.get("issue", "N/A")
+            # Emoji for severity
+            severity_emoji = "🔴" if severity == "critical" else "🟠" if severity == "high" else "🟡" if severity == "medium" else "🟢"
+            md.append(f"| {category} | {severity_emoji} {severity} | {issue} |")
         md.append("")
 
     # Action Plan

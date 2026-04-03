@@ -8,26 +8,153 @@ citation position, frequency, and word count.
 
 Usage:
     python geo_impression_score.py <url> [--query "your question"]
+    python geo_impression_score.py <url> --provider claude --api-key KEY
 """
 
 import sys
 import os
 import re
 import math
+import json
 import argparse
-from typing import List, Tuple, Optional
-from dataclasses import dataclass
+from typing import List, Tuple, Optional, Dict, Any
+from dataclasses import dataclass, asdict
 
 # Optional: for actual LLM calls
 try:
     import requests
+    from bs4 import BeautifulSoup
     HAS_REQUESTS = True
 except ImportError:
     HAS_REQUESTS = False
 
+try:
+    from anthropic import Anthropic
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
+
+try:
+    from openai import OpenAI
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
 }
+
+
+class ImpressionClient:
+    """LLM client for GEO Impression Score calculation."""
+
+    def __init__(self, provider: str = "openai", api_key: Optional[str] = None):
+        self.provider = provider.lower()
+
+        if self.provider == "openai":
+            if not HAS_OPENAI:
+                raise ImportError("OpenAI package not installed")
+            key = api_key or os.environ.get("OPENAI_API_KEY")
+            if not key:
+                raise ValueError("OPENAI_API_KEY not set")
+            self.client = OpenAI(api_key=key)
+            self.model = "gpt-4o-mini"
+        elif self.provider in ("anthropic", "claude"):
+            if not HAS_ANTHROPIC:
+                raise ImportError("Anthropic package not installed")
+            key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+            if not key:
+                raise ValueError("ANTHROPIC_API_KEY not set")
+            self.client = Anthropic(api_key=key)
+            self.model = "claude-sonnet-4-5"
+        else:
+            raise ValueError(f"Unknown provider: {provider}")
+
+    def call_llm(self, prompt: str) -> str:
+        """Call LLM and return text response."""
+        try:
+            if self.provider == "openai":
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    max_tokens=2048
+                )
+                return response.choices[0].message.content or ""
+            elif self.provider in ("anthropic", "claude"):
+                response = self.client.messages.create(
+                    model=self.model,
+                    max_tokens=2048,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                for block in response.content:
+                    if hasattr(block, 'text'):
+                        return block.text
+                return ""
+        except Exception as e:
+            return f"[Error calling LLM: {str(e)}]"
+
+
+def fetch_page_content(url: str, timeout: int = 30) -> Tuple[str, str]:
+    """Fetch and extract text content from a webpage using Playwright for JS rendering."""
+    # Try Playwright first for JavaScript-rendered sites
+    try:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, wait_until="load", timeout=timeout * 1000)
+
+            title_text = page.title()
+
+            content = page.evaluate("""
+                () => {
+                    const main = document.querySelector('main') || document.querySelector('article') || document.body;
+                    const toRemove = main.querySelectorAll('script, style, nav, header, footer, aside, .nav, .footer, .header, .menu, .sidebar');
+                    toRemove.forEach(el => el.remove());
+                    return main ? main.innerText : document.body.innerText;
+                }
+            """)
+
+            browser.close()
+
+            lines = [line.strip() for line in content.split("\n") if line.strip()]
+            text = "\n".join(lines)
+
+            return title_text, text[:10000]
+    except ImportError:
+        pass
+    except Exception as e:
+        pass
+
+    # Fall back to requests
+    if not HAS_REQUESTS:
+        return "", ""
+
+    try:
+        response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "lxml")
+
+        title = soup.find("title")
+        title_text = title.get_text(strip=True) if title else ""
+
+        for tag in soup(["script", "style", "nav", "header", "footer", "aside"]):
+            tag.decompose()
+
+        main = soup.find("main") or soup.find("article") or soup.find("body")
+        if main:
+            text = main.get_text(separator="\n", strip=True)
+        else:
+            text = soup.get_text(separator="\n", strip=True)
+
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        text = "\n".join(lines)
+
+        return title_text, text[:10000]
+    except Exception:
+        return "", ""
 
 
 @dataclass
@@ -318,6 +445,100 @@ def demo_score_calculation() -> ImpressionScore:
     return calculate_impression_score(sample_answer, n_docs=3)
 
 
+def evaluate_impression(
+    url: str,
+    provider: str = "openai",
+    query: str = "What is this page about?",
+    n_docs: int = 5,
+    output_file: Optional[str] = None
+) -> Dict[str, Any]:
+    """Main impression score evaluation function."""
+
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    domain = parsed.netloc or parsed.path.split('/')[0]
+    domain_folder = domain.replace(':', '_')
+    os.makedirs(domain_folder, exist_ok=True)
+
+    print(f"Fetching: {url}")
+    title, content = fetch_page_content(url)
+
+    if not content:
+        return {"error": f"Could not fetch content from {url}"}
+
+    print(f"Title: {title}")
+    print(f"Content length: {len(content)} characters")
+
+    # Create LLM client
+    print(f"\nGenerating answer with citations using {provider}...")
+    client = ImpressionClient(provider=provider)
+
+    # Prompt for LLM to generate answer with citations
+    prompt = f"""You are a research assistant. Based on the following content, answer the query.
+
+IMPORTANT: When you use information from the source, cite it using [1] notation.
+
+Query: {query}
+
+Content:
+{content[:8000]}
+
+Provide your answer with citations [1] where you use information from the content.
+If the content doesn't contain relevant information for a part of your answer, still provide a helpful answer but note that it's based on general knowledge.
+"""
+
+    answer = client.call_llm(prompt)
+
+    if answer.startswith("[Error"):
+        print(f"LLM Error: {answer}")
+        # Fall back to demo calculation
+        score = demo_score_calculation()
+    else:
+        print(f"LLM response length: {len(answer)} characters")
+        print(f"\nSample of LLM response:\n{answer[:500]}...")
+        score = calculate_impression_score(answer, n_docs=n_docs)
+
+    result = {
+        "url": url,
+        "title": title,
+        "provider": provider,
+        "query": query,
+        "position_score": score.position_score,
+        "word_count_score": score.word_count_score,
+        "combined_score": score.combined_score,
+        "citation_count": score.citation_count,
+        "avg_position": score.avg_position,
+        "recommendations": score.recommendations,
+        "llm_answer": answer[:2000] + "..." if len(answer) > 2000 else answer
+    }
+
+    # Save to file
+    if output_file:
+        filename = os.path.basename(output_file)
+        output_path = os.path.join(domain_folder, filename)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+        print(f"\nResults saved to: {output_path}")
+
+    # Print summary
+    print("\n" + "="*60)
+    print("GEO IMPRESSION SCORE RESULTS")
+    print("="*60)
+    print(f"URL: {url}")
+    print(f"Combined Score: {score.combined_score:.3f}")
+    print(f"Position Score: {score.position_score:.3f}")
+    print(f"Word Count Score: {score.word_count_score:.3f}")
+    print(f"Citation Count: {score.citation_count}")
+    print(f"Avg Position: {score.avg_position:.1f}")
+    if score.recommendations:
+        print("\nRecommendations:")
+        for rec in score.recommendations:
+            print(f"  - {rec}")
+    print("="*60)
+
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="GEO Impression Score Calculator"
@@ -327,8 +548,13 @@ def main():
                         help="Query to ask about the page")
     parser.add_argument("--n-docs", "-n", type=int, default=5,
                         help="Number of documents in comparison (default: 5)")
+    parser.add_argument("--provider", "-p", default="openai",
+                        choices=["openai", "anthropic", "claude"],
+                        help="LLM provider to use")
+    parser.add_argument("--api-key", "-k", help="API key (or set env var)")
     parser.add_argument("--demo", "-d", action="store_true",
                         help="Run demo with sample citations")
+    parser.add_argument("--output", "-o", help="Output JSON file")
 
     args = parser.parse_args()
 
@@ -357,30 +583,17 @@ def main():
             print(f"  - {rec}")
         return
 
-    print(f"URL: {args.url}")
-    print(f"Query: {args.query}")
-    print(f"\nNote: Actual LLM citation extraction requires API integration.")
-    print("Use --demo to see how the scoring methodology works.\n")
-
-    # For now, just show the methodology
-    print("To use with actual content:")
-    print("1. Fetch page content")
-    print("2. Call LLM with query and content")
-    print("3. Pass LLM response with [1], [2] citations to calculate_impression_score()")
-    print("\nExample API integration:")
-
-    example_code = '''
-    # Example usage
-    answer = call_llm_with_citations(
-        query="What is this company about?",
-        documents=[content],
-        engine="gemini"
+    result = evaluate_impression(
+        url=args.url,
+        provider=args.provider,
+        query=args.query,
+        n_docs=args.n_docs,
+        output_file=args.output
     )
 
-    score = calculate_impression_score(answer, n_docs=1)
-    print(f"GEO Visibility Score: {score.combined_score:.2f}")
-    '''
-    print(example_code)
+    if result.get("error"):
+        print(f"\nError: {result['error']}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

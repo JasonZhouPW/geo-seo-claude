@@ -41,6 +41,7 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo compare <domain>` | Monthly delta report: show score improvements to client |
 | `/geo rewrite <url>` | Rewrite page content using AutoGEO rules for AI visibility |
 | `/geo evaluate <url>` | GEU (Generative Engine Utility) quality evaluation using LLM assessment |
+| `/geo impression <url>` | GEO Impression Score - measure citation visibility in LLM responses |
 
 ---
 
@@ -81,6 +82,42 @@ Evaluate rewritten content quality using LLM-based assessment across 6 dimension
 - `quality_dimensions` — 6 dimension scores (0.0-1.0)
 - `citation_metrics` — claim extraction and citation recall
 - `overall_quality_score` — weighted average
+
+---
+
+## `/geo impression` — GEO Impression Score
+
+Measure how visible content is in LLM-generated answers based on citation position, frequency, and word count.
+
+**Usage:**
+```
+/geo impression <url> [--provider openai|anthropic|claude] [--query "question"] [--output result.json]
+```
+
+**Parameters:**
+- `url`: Target webpage URL
+- `--provider`: LLM provider to use (default: `openai`)
+- `--query`: Question to ask about the page (default: "What is this page about?")
+- `--output`: Save results to JSON file
+
+**Examples:**
+```
+/geo impression https://example.com                    # Basic impression score
+/geo impression https://example.com --query "What products do they offer?"  # Custom query
+/geo impression https://example.com --provider claude --output impression.json
+```
+
+**GEO Impression Score Dimensions:**
+| Dimension | Description |
+|-----------|-------------|
+| Position Score | Earlier citations score higher (exponential decay) |
+| Word Count Score | More substantive content with specific details scores higher |
+| Combined Score | Weighted combination of position and word count |
+| Citation Count | Number of times content is cited in the LLM response |
+
+**Output:**
+- `geo_impression_score` section in JSON with all metrics
+- Saved to URL-based domain subfolder
 
 ---
 
@@ -163,10 +200,17 @@ Launch these 5 subagents simultaneously:
 1. Collect all subagent reports — verify all 5 have returned
 2. Calculate composite GEO Score (0-100)
 3. **If `has-solution=true`**: Generate prioritized action plan
-4. Assemble all audit data into a JSON file (`audit-data.json`)
-5. Generate MD report: `python3 generate_md_report.py audit-data.json`
-6. Generate PDF report: `python3 generate_pdf_report.py audit-data.json GEO-REPORT.pdf`
-7. Output both report files to the user
+4. **Run GEU Quality Evaluation** (if API key available):
+   - `python3 scripts/geu_evaluator.py <url> --provider claude --skip-rewrite`
+   - Load output JSON into `audit-data.json["geu_score"]`
+5. **Run GEO Impression Score** (if API key available):
+   - `python3 scripts/geo_impression_score.py <url> --provider claude`
+   - Load output JSON into `audit-data.json["geo_impression_score"]`
+6. Assemble all audit data into a JSON file (`audit-data.json`)
+7. Extract domain from URL (e.g., `ont.io` from `https://ont.io`)
+8. Generate MD report: `python3 generate_md_report.py audit-data.json --dir ../<domain>` (run from scripts/ directory)
+9. Generate PDF report: `python3 generate_pdf_report.py audit-data.json GEO-REPORT.pdf --dir ../<domain>`
+10. Output both report files to the user (e.g., `ont.io/GEO-REPORT-<timestamp>.pdf`)
 
 ### Scoring Methodology
 
@@ -180,6 +224,18 @@ Launch these 5 subagents simultaneously:
 | Platform Optimization | 10% | Platform-specific readiness (Google AIO, ChatGPT, Perplexity) |
 
 **When GEU Score is measured (7-category formula):**
+
+| Category | Weight | Measured By |
+|----------|--------|-------------|
+| AI Citability & Visibility | 22% | Passage scoring, answer block quality, AI crawler access |
+| Brand Authority Signals | 18% | Mentions on Reddit, YouTube, Wikipedia, LinkedIn; entity presence |
+| Content Quality & E-E-A-T | 12% | Expertise signals, original data, author credentials |
+| **GEU Quality Score** | **18%** | LLM-based content quality (Clarity, Depth, Balance, Breadth, Support, Insightfulness) |
+| Technical Foundations | 13% | SSR, Core Web Vitals, crawlability, mobile, security |
+| Structured Data | 8% | Schema completeness, JSON-LD validation, rich result eligibility |
+| Platform Optimization | 9% | Platform-specific readiness (Google AIO, ChatGPT, Perplexity) |
+
+**When both GEU and GEO Impression Score are measured (8-category formula):**
 
 | Category | Weight | Measured By |
 |----------|--------|-------------|
@@ -267,6 +323,7 @@ All commands generate structured output:
 | `/geo compare` | `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` |
 | `/geo rewrite` | `rewrite-prompt.md` (rewrite prompt for LLM) |
 | `/geo evaluate` | `geu-evaluation.json` (quality scores + citation metrics) |
+| `/geo impression` | `geo-impression.json` (citation visibility metrics) |
 
 ---
 
@@ -277,7 +334,7 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 ### How It Works
 1. Run the full audit or individual analyses first
 2. Collect all scores and findings into a JSON structure
-3. Execute the PDF generator: `python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py data.json GEO-REPORT.pdf`
+3. Execute the PDF generator: `python3 generate_pdf_report.py data.json GEO-REPORT.pdf --dir ../<domain>` (run from scripts/ directory)
 
 ### What the PDF Includes
 - **Cover page** with GEO score gauge visualization
@@ -292,7 +349,7 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 1. First run `/geo audit <url>` to collect all data
 2. Then run `/geo report-pdf <url>` to generate the PDF
 3. The tool will compile audit data into JSON, then generate the PDF
-4. Output: `GEO-REPORT.pdf` in the current directory
+4. Output: `<domain>/GEO-REPORT.pdf` (e.g., `ont.io/GEO-REPORT.pdf`)
 
 ---
 
@@ -343,4 +400,9 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 /geo evaluate https://example.com
 /geo evaluate https://example.com --skip-rewrite
 /geo evaluate https://example.com --provider claude --output geu.json
+
+# Measure citation visibility with GEO Impression Score
+/geo impression https://example.com
+/geo impression https://example.com --query "What do they offer?"
+/geo impression https://example.com --provider claude --output impression.json
 ```
