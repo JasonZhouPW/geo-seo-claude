@@ -335,6 +335,13 @@ def evaluate_geu(
 ) -> Dict[str, Any]:
     """Main GEU evaluation function."""
 
+    # Create output directory based on domain
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    domain = parsed.netloc or parsed.path.split('/')[0]
+    domain_folder = domain.replace(':', '_')
+    os.makedirs(domain_folder, exist_ok=True)
+
     print(f"Fetching: {url}")
     title, content = fetch_page_content(url)
 
@@ -415,22 +422,27 @@ def evaluate_geu(
         "rewritten_content": rewritten_content[:2000] + "..." if len(rewritten_content) > 2000 else rewritten_content
     }
 
-    # Save to file
+    # Save to file in domain folder
     if output_file:
-        with open(output_file, 'w', encoding='utf-8') as f:
+        # Move output_file to domain folder if it has a path
+        filename = os.path.basename(output_file)
+        output_path = os.path.join(domain_folder, filename)
+        with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
-        print(f"\nResults saved to: {output_file}")
+        print(f"\nResults saved to: {output_path}")
+    else:
+        output_path = None
 
-    # Save rewritten content to file
-    rewrite_file = output_file.replace('.json', '-rewritten.md') if output_file else 'rewrite-content.md'
+    # Save rewritten content to file in domain folder
     if not skip_rewrite and rewritten_content:
-        with open(rewrite_file, 'w', encoding='utf-8') as f:
+        rewrite_filename = 'rewritten.md' if not output_path else os.path.join(domain_folder, 'geu-rewritten.md')
+        with open(rewrite_filename, 'w', encoding='utf-8') as f:
             f.write(f"# Rewritten Content for {url}\n\n")
             f.write(f"Original length: {len(content)} chars\n")
             f.write(f"Rewritten length: {len(rewritten_content)} chars\n\n")
             f.write("---\n\n")
             f.write(rewritten_content)
-        print(f"Rewritten content saved to: {rewrite_file}")
+        print(f"Rewritten content saved to: {rewrite_filename}")
 
     # Print summary
     print("\n" + "="*60)
