@@ -69,6 +69,63 @@ AUTOGEO_RULES = {
         "Write concisely, eliminating repetitive phrasing, filler content, and unnecessary verbosity.",
     ],
 
+    # GEO-Bench + Gemini
+    "geobench_gemini": [
+        "Ensure all information is factually accurate and verifiable, citing credible sources.",
+        "Ensure information is current and up-to-date, especially for time-sensitive topics.",
+        "Ensure the document is self-contained and comprehensive, providing all necessary context and sub-topic information.",
+        "Explain the underlying mechanisms and principles (the 'why' and 'how'), not just surface-level facts.",
+        "Maintain a singular focus on the core topic, excluding tangential information, promotional content, and document 'noise' (e.g., navigation, ads).",
+        "Organize content with a clear, logical hierarchy, using elements like headings, lists, and tables.",
+        "Present a balanced and objective view on debatable topics, including multiple significant perspectives.",
+        "Provide specific, actionable guidance, such as step-by-step instructions, for procedural topics.",
+        "State the primary conclusion directly at the beginning of the document.",
+        "Use clear and unambiguous language, defining technical terms, acronyms, and jargon upon first use.",
+        "Use specific, concrete details and examples instead of abstract generalizations.",
+        "Write concisely, eliminating verbose language, redundancy, and filler content.",
+    ],
+
+    # GEO-Bench + GPT
+    "geobench_gpt": [
+        "Address the topic comprehensively, covering all essential sub-topics and necessary context.",
+        "Define essential terms, acronyms, and jargon upon their first use.",
+        "Ensure all factual information is accurate, verifiable, and internally consistent.",
+        "Ensure content is free from illegal, unethical, or harmful information.",
+        "Ensure each document is self-contained, providing all necessary information on the topic without requiring external links.",
+        "Explain the 'why' and 'how' behind facts, clarifying underlying principles and mechanisms.",
+        "Explicitly differentiate between similar or easily confused concepts.",
+        "For complex or debatable subjects, present multiple significant viewpoints in a balanced way.",
+        "For procedural content, provide clear, numbered, step-by-step instructions.",
+        "For time-sensitive topics, ensure information is current and clearly display its publication or last-updated date.",
+        "Maintain a neutral, objective tone, clearly distinguishing facts from opinions.",
+        "Maintain a singular focus on the core topic, excluding tangential or promotional content.",
+        "Organize content with a clear, logical hierarchy using headings, lists, and tables.",
+        "State the primary conclusion at the beginning of the document.",
+        "Structure content into atomic units, where each paragraph or section addresses a single idea.",
+        "Use clear, simple, and unambiguous language.",
+        "Use concrete examples, analogies, or case studies to illustrate complex concepts.",
+        "Use specific, concrete details like names, dates, and statistics instead of generalizations.",
+        "Write concisely, eliminating repetition, filler words, and verbose phrasing.",
+    ],
+
+    # GEO-Bench + Claude
+    "geobench_claude": [
+        "Cite authoritative sources to support claims and establish credibility.",
+        "Cover the topic comprehensively, providing depth by explaining the underlying 'why' and 'how'.",
+        "Ensure all information is factually accurate, verifiable, and internally consistent.",
+        "Ensure each document is self-contained and can be understood without external context.",
+        "Focus on a single topic, writing concisely and eliminating irrelevant or repetitive content.",
+        "For task-oriented topics, provide actionable guidance like step-by-step instructions.",
+        "Indicate the timeliness of information with clear publication or revision dates.",
+        "Maintain a neutral, objective tone, prioritizing facts over opinions or promotional language.",
+        "Present multiple perspectives and counterarguments for complex or debatable topics.",
+        "Provide specific details, such as names, dates, statistics, and concrete examples, to support claims and illustrate concepts.",
+        "Segment content into discrete units, where each paragraph or list item addresses a single idea.",
+        "State the key conclusion at the beginning of the document.",
+        "Use clear structural elements like headings, lists, and tables to organize content logically.",
+        "Use clear, unambiguous language, and define technical terms or acronyms on their first use.",
+    ],
+
     # E-commerce + Gemini
     "ecommerce_gemini": [
         "Ensure all information is factually accurate, verifiable, and current for the topic.",
@@ -246,6 +303,7 @@ BUSINESS_TYPE_TO_RULES = {
     "shop": "ecommerce_gemini",
     "store": "ecommerce_gemini",
     "local": "research_gemini",
+    "geobench": "geobench_gemini",
     "other": "research_gemini",
 }
 

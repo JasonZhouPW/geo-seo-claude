@@ -23,7 +23,7 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 
 | Command | What It Does |
 |---------|-------------|
-| `/geo audit <url> [has-solution] [cn-media]` | Full GEO + SEO audit with parallel subagents. `has-solution`: false=skip solutions (default), true=include action plan. `cn-media`: true=include Chinese media (default), false=exclude |
+| `/geo audit <url> [has-solution] [cn-media] [use-proxy] [proxy_url]` | Full GEO + SEO audit with parallel subagents. `has-solution`: false=skip solutions (default), true=include action plan. `cn-media`: true=include Chinese media (default), false=exclude. `use-proxy`: false=direct access (default), true=use proxy. `proxy_url`: required when `use-proxy=true`, the proxy URL (e.g., `http://127.0.0.1:12377`) |
 | `/geo page <url>` | Deep single-page GEO analysis |
 | `/geo citability <url>` | Score content for AI citation readiness |
 | `/geo crawlers <url>` | Check AI crawler access (robots.txt analysis) |
@@ -171,14 +171,17 @@ Rewrite webpage content to maximize visibility in LLM-generated answers, powered
 
 ## Orchestration Logic
 
-### Full Audit (`/geo audit <url> [has-solution] [cn-media]`)
+### Full Audit (`/geo audit <url> [has-solution] [cn-media] [use-proxy] [proxy_url]`)
 
 **Parameters:**
 - `url` (required): The website URL to audit
 - `has-solution` (optional, default: `false`): When `false`, the report excludes the "Action Plan" / solutions section. When `true`, includes prioritized recommendations.
 - `cn-media` (optional, default: `true`): When `true`, includes Chinese media platforms in brand mention scanning (WeChat, Weibo, Zhihu, Bilibili, Douyin, Baidu, etc.). When `false`, excludes Chinese media.
+- `use-proxy` (optional, default: `false`): When `true`, enables proxy access for geo-blocked sites. Requires `proxy_url` to be set.
+- `proxy_url` (optional, required when `use-proxy=true`): The proxy URL to use (e.g., `http://127.0.0.1:12377`). Must be non-empty when `use-proxy=true`.
 
 **Phase 1: Discovery (Sequential)**
+1. **If `use-proxy=true`**: Execute `export https_proxy="<proxy_url>"` before any fetching operations. If `proxy_url` is empty when `use-proxy=true`, abort with error.
 1. Fetch homepage HTML (curl or WebFetch)
 2. Detect business type (SaaS, Local, E-commerce, Publisher, Agency, Other)
 3. Extract key pages from sitemap.xml or internal links (up to 50 pages)
@@ -377,6 +380,9 @@ The `/geo report-pdf <url>` command generates a professional, branded PDF report
 
 # Full GEO audit with solutions and Chinese media (explicit)
 /geo audit https://example.com has-solution=true cn-media=true
+
+# Full GEO audit with proxy (for geo-blocked sites)
+/geo audit https://example.com has-solution=true use-proxy=true proxy_url=http://127.0.0.1:12377
 
 # Check if AI bots can see your site
 /geo crawlers https://example.com

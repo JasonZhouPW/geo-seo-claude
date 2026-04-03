@@ -238,7 +238,7 @@ def word_wrap_text(c, text, max_w, font="Helvetica", size=8.5):
     return lines
 
 def get_score_label(score):
-    """Return label based on score value."""
+    """Return 5-level label based on score value."""
     if score >= 85:
         return "Excellent"
     elif score >= 70:
@@ -247,6 +247,15 @@ def get_score_label(score):
         return "Moderate"
     elif score >= 40:
         return "Below Average"
+    else:
+        return "Needs Work"
+
+def get_tier_label(score):
+    """Return 4-level tier label (cover/page headers)."""
+    if score >= 70:
+        return "Good"
+    elif score >= 50:
+        return "Fair"
     else:
         return "Needs Work"
 
@@ -280,7 +289,7 @@ def draw_cover(c, data):
     else:
         formatted_date = date
 
-    tier_label = get_score_label(geo_score)
+    tier_label = get_tier_label(geo_score)
 
     # Full dark header band
     draw_rect(c, 0, H - 120*mm, W, 120*mm, fill=NAVY)
@@ -367,7 +376,7 @@ def draw_cover(c, data):
     c.setFillColor(TEXT_MID)
     c.drawString(95*mm, sy + 36*mm, "Placing in the ")
     c.setFont("Helvetica-Bold", 9)
-    tier_color = RED_SOFT if tier_label == "Needs Work" else ORANGE if tier_label == "Fair" else GREEN
+    tier_color = RED_SOFT if tier_label == "Needs Work" else ORANGE if tier_label == "Fair" else ACCENT if tier_label == "Good" else GREEN
     c.setFillColor(tier_color)
     tier_w = c.stringWidth(tier_label, "Helvetica-Bold", 9)
     c.drawString(95*mm + c.stringWidth("Placing in the ", "Helvetica", 9), sy + 36*mm, tier_label)
@@ -377,7 +386,7 @@ def draw_cover(c, data):
     c.restoreState()
 
     # Tier bar
-    tiers = [("Needs Work", "0–49", RED_SOFT), ("Fair", "50–59", ORANGE), ("Good", "60–79", ACCENT), ("Excellent", "80–100", GREEN)]
+    tiers = [("Needs Work", "0–49", RED_SOFT), ("Fair", "50–69", ORANGE), ("Good", "70–84", ACCENT), ("Excellent", "85–100", GREEN)]
     tx = 95*mm
     ty = sy + 26*mm
     block_w = 42
@@ -485,7 +494,7 @@ def draw_page2(c, data):
     scores = data.get("scores", {})
     platforms = data.get("platforms", {})
     geo_score = data.get("geo_score", 0)
-    tier_label = get_score_label(geo_score)
+    tier_label = get_tier_label(geo_score)
 
     ai_citability = scores.get("ai_citability", 0)
     brand_authority = scores.get("brand_authority", 0)
