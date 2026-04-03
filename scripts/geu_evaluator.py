@@ -421,6 +421,17 @@ def evaluate_geu(
             json.dump(result, f, ensure_ascii=False, indent=2)
         print(f"\nResults saved to: {output_file}")
 
+    # Save rewritten content to file
+    rewrite_file = output_file.replace('.json', '-rewritten.md') if output_file else 'rewrite-content.md'
+    if not skip_rewrite and rewritten_content:
+        with open(rewrite_file, 'w', encoding='utf-8') as f:
+            f.write(f"# Rewritten Content for {url}\n\n")
+            f.write(f"Original length: {len(content)} chars\n")
+            f.write(f"Rewritten length: {len(rewritten_content)} chars\n\n")
+            f.write("---\n\n")
+            f.write(rewritten_content)
+        print(f"Rewritten content saved to: {rewrite_file}")
+
     # Print summary
     print("\n" + "="*60)
     print("GEU EVALUATION RESULTS")
