@@ -29,7 +29,7 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo crawlers <url>` | Check AI crawler access (robots.txt analysis) |
 | `/geo llmstxt <url>` | Analyze or generate llms.txt file |
 | `/geo brands <url>` | Scan brand mentions across AI-cited platforms |
-| `/geo platforms <url>` | Platform-specific optimization (ChatGPT, Perplexity, Google AIO) |
+| `/geo platforms <url>` | Platform-specific optimization (ChatGPT, Perplexity, Google AIO, Claude, Baidu Wenxin, Alibaba Tongyi, ByteDance DouAI) |
 | `/geo schema <url>` | Detect, validate, and generate structured data |
 | `/geo technical <url>` | Traditional technical SEO audit |
 | `/geo content <url>` | Content quality and E-E-A-T assessment |
@@ -42,6 +42,10 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo rewrite <url>` | Rewrite page content using AutoGEO rules for AI visibility |
 | `/geo evaluate <url>` | GEU (Generative Engine Utility) quality evaluation using LLM assessment |
 | `/geo impression <url>` | GEO Impression Score - measure citation visibility in LLM responses |
+| `/geo multimodal <url>` | Multimodal analysis - image alt text, video captions, chart parseability |
+| `/geo entity <url>` | Entity graph analysis - knowledge graph readiness, entity relationship density |
+| `/geo competitive <domain> <competitor1,competitor2>` | Competitive analysis - Share of Voice, gap analysis |
+| `/geo attribution <citations> <monthly_investment>` | GEO attribution - traffic attribution, ROI prediction |
 
 ---
 
@@ -192,7 +196,7 @@ Launch these 5 subagents simultaneously:
 | Subagent | File | Responsibility |
 |----------|------|---------------|
 | geo-ai-visibility | `agents/geo-ai-visibility.md` | GEO audit, citability, AI crawlers, llms.txt, brand mentions |
-| geo-platform-analysis | `agents/geo-platform-analysis.md` | Platform-specific optimization (ChatGPT, Perplexity, Google AIO) |
+| geo-platform-analysis | `agents/geo-platform-analysis.md` | Platform-specific optimization (ChatGPT, Perplexity, Google AIO, Claude, Baidu Wenxin, Alibaba Tongyi, ByteDance DouAI) |
 | geo-technical | `agents/geo-technical.md` | Technical SEO, Core Web Vitals, crawlability, indexability |
 | geo-content | `agents/geo-content.md` | Content quality, E-E-A-T, readability, AI content detection |
 | geo-schema | `agents/geo-schema.md` | Schema markup detection, validation, generation |
