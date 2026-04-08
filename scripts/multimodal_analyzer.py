@@ -4,8 +4,8 @@ Multimodal Content Analyzer — Analyzes image, video, and audio content for AI 
 Detects: alt text coverage, video captions/subtitles, chart accessibility, audio transcripts.
 """
 
-import sys
 import re
+import sys
 from typing import Dict, List
 
 try:
@@ -24,7 +24,7 @@ def analyze_images(soup: BeautifulSoup) -> Dict:
     """
     images = soup.find_all("img")
     if not images:
-        return {"total_images": 0, "alt_coverage_pct": 0, "quality_score": 0}
+        return {"total_images": 0, "images_missing_alt": 0, "alt_coverage_pct": 0, "quality_score": 0}
 
     with_alt = []
     without_alt = []
