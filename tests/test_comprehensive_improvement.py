@@ -588,14 +588,14 @@ from entity_analyzer import (
 def test_extract_no_entities():
     """Text with no named entities returns empty list (regex fallback)."""
     text = "This is just some generic text without any proper nouns."
-    entities = extract_named_entities(text, use_llm=False)
+    entities = extract_named_entities(text, mode="api")
     assert entities == []
 
 
 def test_extract_person_with_suffix():
     """Person names with Jr., Sr., III suffixes are extracted (regex)."""
     text = "John Smith Jr. and Jane Doe III are the founders."
-    entities = extract_named_entities(text, use_llm=False)
+    entities = extract_named_entities(text, mode="api")
     labels = [e["label"] for e in entities]
     assert "PERSON" in labels
 
@@ -603,7 +603,7 @@ def test_extract_person_with_suffix():
 def test_extract_person_with_title():
     """Person names with Dr./Prof./Mr./Mrs. titles are extracted (regex)."""
     text = "Dr. Jane Smith and Prof. John Doe discuss the findings."
-    entities = extract_named_entities(text, use_llm=False)
+    entities = extract_named_entities(text, mode="api")
     labels = [e["label"] for e in entities]
     assert "PERSON" in labels
 
@@ -611,7 +611,7 @@ def test_extract_person_with_title():
 def test_extract_org_google_inc():
     """Google Inc. is correctly identified as ORG (regex fallback)."""
     text = "Google Inc. announced new features."
-    entities = extract_named_entities(text, use_llm=False)
+    entities = extract_named_entities(text, mode="api")
     labels = [e["label"] for e in entities]
     assert "ORG" in labels
 
@@ -620,14 +620,14 @@ def test_extract_org_variations():
     """Various org suffixes are all recognized (regex fallback)."""
     for expected in ["Acme Inc.", "Acme LLC.", "Acme Corp.", "Acme Ltd."]:
         text = f"{expected} is a company."
-        entities = extract_named_entities(text, use_llm=False)
+        entities = extract_named_entities(text, mode="api")
         labels = [e["label"] for e in entities]
         assert "ORG" in labels, f"Failed for {expected}"
 
 
-def test_entity_relationships_llm_mocked():
-    """Entity relationships parsed correctly from LLM JSON response."""
-    llm_response = json.dumps({
+def test_entity_relationships_api_mode_mocked():
+    """Entity relationships via API mode returns correct structure."""
+    api_response = json.dumps({
         "entities": [
             {"text": "Google", "label": "ORG", "start": 0},
             {"text": "Sundar Pichai", "label": "PERSON", "start": 50},
@@ -641,9 +641,9 @@ def test_entity_relationships_llm_mocked():
         ],
     })
 
-    with patch("entity_analyzer._call_llm", return_value=llm_response):
+    with patch("entity_analyzer._call_api", return_value=api_response):
         soup = BeautifulSoup("<html><body><p>Google vs Microsoft. DeepMind is an AI lab.</p></body></html>", "lxml")
-        result = analyze_entity_relationships(soup, "Google", use_llm=True)
+        result = analyze_entity_relationships(soup, "Google", mode="api")
 
     assert result["total_entities_found"] == 3
     assert result["triple_count"] == 4
@@ -665,9 +665,35 @@ def test_entity_relationships_llm_mocked():
     assert len(used_by_triples) == 1
 
 
-def test_entity_relationships_multilingual_llm():
-    """LLM-based entity extraction handles multilingual content."""
-    llm_response = json.dumps({
+def test_entity_relationships_local_mode_mocked():
+    """Entity relationships via local subagent mode returns correct structure."""
+    local_response = {
+        "entities": [
+            {"text": "OpenAI", "label": "ORG", "start": 0},
+            {"text": "阿里巴巴", "label": "ORG", "start": 30},
+            {"text": "马云", "label": "PERSON", "start": 60},
+        ],
+        "triples": [
+            {"subject": "OpenAI", "predicate": "competitor", "object": "阿里巴巴"},
+            {"subject": "阿里巴巴", "predicate": "founded_by", "object": "马云"},
+        ],
+    }
+
+    with patch("entity_analyzer._call_local_analysis", return_value=local_response):
+        soup = BeautifulSoup("<html><body><p>OpenAI vs 阿里巴巴竞争。马云创立了阿里巴巴。</p></body></html>", "lxml")
+        result = analyze_entity_relationships(soup, "TestBrand", mode="local")
+
+    assert result["unique_entities"] == 3
+    entity_types = result["entity_types"]
+    assert entity_types.get("ORG", 0) >= 2
+    assert entity_types.get("PERSON", 0) >= 1
+    competitor_triples = [t for t in result["knowledge_triples"] if t["predicate"] == "competitor"]
+    assert len(competitor_triples) == 1
+
+
+def test_entity_relationships_multilingual_api():
+    """API mode handles multilingual content with LLM."""
+    api_response = json.dumps({
         "entities": [
             {"text": "OpenAI", "label": "ORG", "start": 0},
             {"text": "阿里巴巴", "label": "ORG", "start": 30},
@@ -680,9 +706,9 @@ def test_entity_relationships_multilingual_llm():
         ],
     })
 
-    with patch("entity_analyzer._call_llm", return_value=llm_response):
+    with patch("entity_analyzer._call_api", return_value=api_response):
         soup = BeautifulSoup("<html><body><p>OpenAI vs 阿里巴巴竞争。马云创立了阿里巴巴。</p></body></html>", "lxml")
-        result = analyze_entity_relationships(soup, "TestBrand", use_llm=True)
+        result = analyze_entity_relationships(soup, "TestBrand", mode="api")
 
     assert result["unique_entities"] == 4
     entity_types = result["entity_types"]
@@ -692,22 +718,21 @@ def test_entity_relationships_multilingual_llm():
     assert len(competitor_triples) == 1
 
 
-def test_entity_relationships_llm_invalid_json_fallback():
-    """Invalid LLM JSON response falls back to regex."""
-    with patch("entity_analyzer._call_llm", return_value="This is not JSON"):
+def test_entity_relationships_api_invalid_json_fallback():
+    """Invalid API JSON response falls back to regex."""
+    with patch("entity_analyzer._call_api", return_value="This is not JSON"):
         soup = BeautifulSoup("<html><body><p>Google vs Microsoft in AI.</p></body></html>", "lxml")
-        result = analyze_entity_relationships(soup, "Google", use_llm=True)
+        result = analyze_entity_relationships(soup, "Google", mode="api")
 
-    # Should fall back to regex, which can extract some triples
     assert "knowledge_triples" in result
     assert "entity_types" in result
 
 
-def test_entity_relationships_llm_empty_response():
-    """Empty LLM response falls back to regex."""
-    with patch("entity_analyzer._call_llm", return_value=""):
+def test_entity_relationships_api_empty_response():
+    """Empty API response falls back to regex."""
+    with patch("entity_analyzer._call_api", return_value=""):
         soup = BeautifulSoup("<html><body><p>Google vs Microsoft in AI.</p></body></html>", "lxml")
-        result = analyze_entity_relationships(soup, "Google", use_llm=True)
+        result = analyze_entity_relationships(soup, "Google", mode="api")
 
     assert "knowledge_triples" in result
     assert "entity_types" in result
@@ -717,7 +742,7 @@ def test_brand_cooccurrence_industry_terms():
     """Brand co-occurrence with industry terms detected (regex, no LLM)."""
     html = "<html><body><p>GEO SEO AI content marketing digital marketing.</p></body></html>"
     soup = BeautifulSoup(html, "lxml")
-    result = analyze_entity_relationships(soup, "TestBrand", use_llm=False)
+    result = analyze_entity_relationships(soup, "TestBrand", mode="api")
     cooc = result["brand_cooccurrence"]
     assert cooc["industry_terms_found"] >= 3
 
@@ -726,7 +751,7 @@ def test_brand_cooccurrence_case_insensitive():
     """Industry term matching is case-insensitive (regex, no LLM)."""
     html = "<html><body><p>GEO SEO AI SEO SEO GEO.</p></body></html>"
     soup = BeautifulSoup(html, "lxml")
-    result = analyze_entity_relationships(soup, "TestBrand", use_llm=False)
+    result = analyze_entity_relationships(soup, "TestBrand", mode="api")
     counts = result["brand_cooccurrence"]["cooccurrence_counts"]
     assert counts.get("SEO", 0) >= 2
 

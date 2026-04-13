@@ -481,7 +481,7 @@ def draw_cover(c, data):
         text_y -= 13
     c.restoreState()
 
-    page_footer(c, 1, 5, url, brand_name)
+    page_footer(c, 1, 8, url, brand_name)
     c.showPage()
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -717,7 +717,7 @@ def draw_page2(c, data):
     card_w = (W - 36*mm - 12) / 3  # 3 equal cards with gaps
     card_h = 50
 
-    for i, (label, val, desc) in enumerate(metrics):
+    for i, (label_text, val, desc) in enumerate(metrics):
         cx = 18*mm + i * (card_w + 6)
         cy = y - card_h
 
@@ -728,7 +728,7 @@ def draw_page2(c, data):
         c.saveState()
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(TEXT_DARK)
-        c.drawCentredString(cx + card_w/2, cy + card_h - 10, label)
+        c.drawCentredString(cx + card_w/2, cy + card_h - 10, label_text)
         c.restoreState()
 
         # Score value in center - Position Score and Word Count already have /100, Citations doesn't
@@ -802,8 +802,8 @@ def draw_page2(c, data):
         dim_card_w = (W - 36*mm - 10) / 6
         dim_card_h = 35
 
-        for i, (label, score, desc) in enumerate(geu_dims):
-            score_int = int(score * 100) if score else 0
+        for i, (label_text, score_val, desc) in enumerate(geu_dims):
+            score_int = int(score_val * 100) if score_val else 0
             cx = 18*mm + i * (dim_card_w + 2)
             cy = y - dim_card_h
 
@@ -812,7 +812,7 @@ def draw_page2(c, data):
             c.saveState()
             c.setFont("Helvetica-Bold", 6.5)
             c.setFillColor(TEXT_DARK)
-            c.drawCentredString(cx + dim_card_w/2, cy + dim_card_h - 8, label)
+            c.drawCentredString(cx + dim_card_w/2, cy + dim_card_h - 8, label_text)
             c.restoreState()
 
             c.saveState()
@@ -855,14 +855,634 @@ def draw_page2(c, data):
         c.drawString(18*mm, y, f"Citation Recall: {int(citation_recall * 100)}% (claims with source citations)")
         c.restoreState()
 
-    page_footer(c, 2, 5, url, brand_name)
+    page_footer(c, 2, 8, url, brand_name)
     c.showPage()
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PAGE 3 — CRAWLER ACCESS & BRAND AUTHORITY
+# PAGE 3 — MULTIMODAL & ENTITY ANALYSIS (Advisory)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def draw_page3(c, data):
+def draw_page3_multimodal(c, data):
+    url = data.get("url", "")
+    brand_name = data.get("brand_name", "")
+    multimodal = data.get("multimodal_analysis", {})
+    entity = data.get("entity_analysis", {})
+
+    y = H - 20*mm
+
+    # Page header strip
+    draw_rect(c, 0, H - 14*mm, W, 14*mm, fill=NAVY)
+    c.saveState()
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(WHITE)
+    c.drawString(18*mm, H - 9*mm, "Multimodal & Entity Analysis")
+    c.setFont("Helvetica", 8)
+    c.setFillColor(colors.HexColor("#A0B4C8"))
+    c.drawRightString(W - 18*mm, H - 9*mm, f"{brand_name} · {url}")
+    c.restoreState()
+
+    y = H - 26*mm
+
+    # ── MULTIMODAL CONTENT ─────────────────────────────────────────────────────
+    y = section_header(c, y, "Multimodal Content Accessibility", "Alt text, captions, and visual accessibility for AI systems")
+    y -= 14
+
+    multimodal_score = multimodal.get("multimodal_composite_score", 0)
+    image_analysis = multimodal.get("image_analysis", {})
+    video_analysis = multimodal.get("video_analysis", {})
+    chart_analysis = multimodal.get("chart_analysis", {})
+    audio_analysis = multimodal.get("audio_analysis", {})
+
+    # Score overview cards
+    card_w = (W - 36*mm - 10) / 4
+    card_h = 38
+    cards = [
+        ("Composite Score", multimodal_score, "Overall multimodal readiness"),
+        ("Image Alt Coverage", image_analysis.get("alt_coverage_pct", 0), f"{image_analysis.get('images_with_alt', 0)}/{image_analysis.get('total_images', 0)} images"),
+        ("Chart Accessibility", chart_analysis.get("chart_accessibility_score", 0), f"{chart_analysis.get('figures_with_captions', 0)} figures captioned"),
+        ("Video Readiness", video_analysis.get("video_readiness_score", 0), f"{video_analysis.get('videos_without_captions', 0)} need captions"),
+    ]
+
+    for i, (label_text, score_val, sub) in enumerate(cards):
+        cx = 18*mm + i * (card_w + 2)
+        cy = y - card_h
+        draw_rect(c, cx, cy, card_w, card_h, fill=WHITE, stroke=BORDER, radius=5, lw=0.5)
+
+        c.saveState()
+        c.setFont("Helvetica-Bold", 7)
+        c.setFillColor(TEXT_DARK)
+        c.drawCentredString(cx + card_w/2, cy + card_h - 10, label_text)
+        c.restoreState()
+
+        c.saveState()
+        c.setFont("Helvetica-Bold", 14)
+        col = ACCENT if score_val >= 70 else GOLD if score_val >= 50 else ORANGE
+        c.setFillColor(col)
+        c.drawCentredString(cx + card_w/2, cy + card_h/2 - 4, f"{score_val:.1f}" if isinstance(score_val, float) else str(score_val))
+        c.restoreState()
+
+        c.saveState()
+        c.setFont("Helvetica", 6)
+        c.setFillColor(TEXT_LIGHT)
+        c.drawCentredString(cx + card_w/2, cy + 10, sub)
+        c.restoreState()
+
+    y -= card_h + 12
+
+    # Missing alt images
+    missing_alt = image_analysis.get("missing_alt_details", [])
+    if missing_alt:
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, f"Images Missing Alt Text ({len(missing_alt)} shown of {image_analysis.get('images_missing_alt', 0)} total):")
+        c.restoreState()
+        y -= 12
+        for item in missing_alt[:3]:
+            src = item.get("src", "")[:60]
+            c.saveState()
+            c.setFont("Helvetica", 7)
+            c.setFillColor(RED_SOFT)
+            c.drawString(22*mm, y, f"⚠ {src}")
+            c.restoreState()
+            y -= 10
+        y -= 6
+
+    # Image quality section
+    if image_analysis.get("images_with_alt", 0) > 0:
+        quality_score = image_analysis.get("quality_score", 0)
+        c.saveState()
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(18*mm, y, f"Alt Text Quality Score: {quality_score:.1f}/100")
+        c.restoreState()
+        bar_mini(c, 65*mm, y + 3, quality_score, bar_w=80, bar_h=4)
+        y -= 16
+
+    # Recommendations
+    multimodal_recs = multimodal.get("recommendations", [])
+    if multimodal_recs:
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, "Recommendations:")
+        c.restoreState()
+        y -= 12
+        for rec in multimodal_recs[:3]:
+            c.saveState()
+            c.setFont("Helvetica", 7.5)
+            c.setFillColor(TEXT_MID)
+            rec_text = rec[:90] + "..." if len(rec) > 90 else rec
+            c.drawString(22*mm, y, f"• {rec_text}")
+            c.restoreState()
+            y -= 11
+    y -= 10
+
+    # ── ENTITY ANALYSIS ────────────────────────────────────────────────────────
+    # Entity section needs ~110mm. If y < 120mm, start a new page.
+    if y < 120*mm:
+        page_footer(c, 3, 8, url, brand_name)
+        c.showPage()
+        y = H - 20*mm
+        # Draw continuation header on new page
+        draw_rect(c, 0, H - 14*mm, W, 14*mm, fill=NAVY)
+        c.saveState()
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(WHITE)
+        c.drawString(18*mm, H - 9*mm, "Multimodal & Entity Analysis (cont.)")
+        c.setFont("Helvetica", 8)
+        c.setFillColor(colors.HexColor("#A0B4C8"))
+        c.drawRightString(W - 18*mm, H - 9*mm, f"{brand_name} · {url}")
+        c.restoreState()
+        y = H - 26*mm
+
+    y = section_header(c, y, "Entity Knowledge Graph Readiness", "Named entities, relationships, and knowledge triples for AI grounding")
+    y -= 14
+
+    entity_graph_score = entity.get("entity_graph_score", 0)
+    entity_diversity = entity.get("entity_diversity_score", 0)
+    relationship_density = entity.get("relationship_density_score", 0)
+    total_entities = entity.get("total_entities_found", 0)
+    unique_entities = entity.get("unique_entities", 0)
+    triple_count = entity.get("triple_count", 0)
+
+    # Score cards
+    ecards = [
+        ("Entity Graph Score", entity_graph_score, "Overall entity readiness"),
+        ("Entity Diversity", entity_diversity, f"{unique_entities} unique entities"),
+        ("Relationship Density", relationship_density, f"{triple_count} knowledge triples"),
+        ("Total Entities Found", total_entities, "Named entities extracted"),
+    ]
+
+    for i, (label_text, score_val, sub) in enumerate(ecards):
+        cx = 18*mm + i * (card_w + 2)
+        cy = y - card_h
+        draw_rect(c, cx, cy, card_w, card_h, fill=WHITE, stroke=BORDER, radius=5, lw=0.5)
+
+        c.saveState()
+        c.setFont("Helvetica-Bold", 7)
+        c.setFillColor(TEXT_DARK)
+        c.drawCentredString(cx + card_w/2, cy + card_h - 10, label_text)
+        c.restoreState()
+
+        c.saveState()
+        c.setFont("Helvetica-Bold", 14)
+        col = ACCENT if score_val >= 70 else GOLD if score_val >= 50 else ORANGE
+        c.setFillColor(col)
+        c.drawCentredString(cx + card_w/2, cy + card_h/2 - 4, f"{score_val:.1f}" if isinstance(score_val, float) else str(score_val))
+        c.restoreState()
+
+        c.saveState()
+        c.setFont("Helvetica", 6)
+        c.setFillColor(TEXT_LIGHT)
+        c.drawCentredString(cx + card_w/2, cy + 10, sub)
+        c.restoreState()
+
+    y -= card_h + 12
+
+    # Entity types breakdown - guard against overflow
+    entity_types = entity.get("entity_types", {})
+    if entity_types and y > 55*mm:
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, "Entity Types Found:")
+        c.restoreState()
+        y -= 12
+        for etype, count in list(entity_types.items())[:4]:
+            if y < 25*mm:
+                break
+            c.saveState()
+            c.setFont("Helvetica", 8)
+            c.setFillColor(TEXT_MID)
+            c.drawString(22*mm, y, f"• {etype}: {count}")
+            c.restoreState()
+            y -= 10
+        y -= 6
+
+    # Knowledge triples - guard against overflow
+    knowledge_triples = entity.get("knowledge_triples", [])
+    if knowledge_triples and y > 55*mm:
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, "Sample Knowledge Triples:")
+        c.restoreState()
+        y -= 12
+        for triple in knowledge_triples[:4]:
+            if y < 25*mm:
+                break
+            subj = triple.get("subject", "")[:25]
+            pred = triple.get("predicate", "")[:20]
+            obj = triple.get("object", "")[:25]
+            c.saveState()
+            c.setFont("Helvetica", 7.5)
+            c.setFillColor(TEXT_MID)
+            c.drawString(22*mm, y, f"• {subj} —{pred}→ {obj}")
+            c.restoreState()
+            y -= 10
+        y -= 6
+
+    # Brand cooccurrence
+    brand_cooc = entity.get("brand_cooccurrence", {})
+    industry_terms = brand_cooc.get("industry_terms_found", 0)
+    if industry_terms > 0 and y > 35*mm:
+        c.saveState()
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(18*mm, y, f"Industry Terms with Brand: {industry_terms} co-occurring terms")
+        c.restoreState()
+        y -= 14
+
+    page_footer(c, 3, 8, url, brand_name)
+    c.showPage()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 4 — COMPETITIVE INTELLIGENCE (Advisory)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def draw_page4_competitive(c, data):
+    url = data.get("url", "")
+    brand_name = data.get("brand_name", "")
+    competitive = data.get("competitive_analysis", {})
+    share_of_voice = competitive.get("share_of_voice", {})
+    competitive_gaps = competitive.get("competitive_gaps", {})
+
+    y = H - 20*mm
+
+    # Page header strip
+    draw_rect(c, 0, H - 14*mm, W, 14*mm, fill=NAVY)
+    c.saveState()
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(WHITE)
+    c.drawString(18*mm, H - 9*mm, "Competitive Intelligence")
+    c.setFont("Helvetica", 8)
+    c.setFillColor(colors.HexColor("#A0B4C8"))
+    c.drawRightString(W - 18*mm, H - 9*mm, f"{brand_name} · {url}")
+    c.restoreState()
+
+    y = H - 26*mm
+
+    # ── SHARE OF VOICE ─────────────────────────────────────────────────────────
+    y = section_header(c, y, "Share of Voice Analysis", "Brand presence strength vs competitors in AI citations")
+    y -= 14
+
+    sov_total = share_of_voice.get("total_mentions", 0)
+    sov_brands = share_of_voice.get("brands", {})
+    brand_mention_count = len(sov_brands)
+
+    # Summary stat (only if we have data)
+    if sov_brands:
+        stat_w = 80
+        stat_h = 30
+        draw_rect(c, 18*mm, y - stat_h, stat_w, stat_h, fill=LIGHT_BG, radius=5)
+        c.saveState()
+        c.setFont("Helvetica-Bold", 16)
+        c.setFillColor(NAVY)
+        c.drawCentredString(18*mm + stat_w/2, y - stat_h/2 + 4, str(sov_total))
+        c.setFont("Helvetica", 7)
+        c.setFillColor(TEXT_MID)
+        c.drawCentredString(18*mm + stat_w/2, y - stat_h - 6, "Total Brand Mentions Analyzed")
+        c.restoreState()
+
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm + stat_w + 15, y - stat_h/2 + 4, f"{brand_mention_count} competitors tracked")
+        c.restoreState()
+        y -= stat_h + 10
+
+    # Top brands table
+    if sov_brands:
+        sorted_brands = sorted(sov_brands.items(), key=lambda x: x[1].get("mentions", 0), reverse=True)[:6]
+
+        # Header
+        draw_rect(c, 18*mm, y - 2, W - 36*mm, 16, fill=DARK_BLUE, radius=3)
+        c.saveState()
+        c.setFont("Helvetica-Bold", 7.5)
+        c.setFillColor(WHITE)
+        c.drawString(22*mm, y + 4, "Brand")
+        c.drawString(90*mm, y + 4, "Mentions")
+        c.drawString(115*mm, y + 4, "SOV %")
+        c.drawString(140*mm, y + 4, "Trend")
+        c.restoreState()
+        y -= 18
+
+        for idx, (brand, info) in enumerate(sorted_brands):
+            row_bg = LIGHT_BG if idx % 2 == 0 else WHITE
+            draw_rect(c, 18*mm, y - 2, W - 36*mm, 22, fill=row_bg)
+
+            mentions = info.get("mentions", 0)
+            sov_pct = info.get("share_of_voice_pct", 0)
+            trend = info.get("trend", "stable")
+
+            c.saveState()
+            c.setFont("Helvetica-Bold", 8.5)
+            c.setFillColor(TEXT_DARK)
+            c.drawString(22*mm, y + 8, brand[:25])
+            c.setFont("Helvetica", 8)
+            c.setFillColor(TEXT_MID)
+            c.drawString(90*mm, y + 8, str(mentions))
+            c.drawString(115*mm, y + 8, f"{sov_pct:.1f}%")
+            # Trend indicator
+            trend_col = GREEN if trend == "rising" else ORANGE if trend == "declining" else TEXT_LIGHT
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(trend_col)
+            trend_icon = "↑" if trend == "rising" else "↓" if trend == "declining" else "→"
+            c.drawString(140*mm, y + 8, f"{trend_icon} {trend}")
+            c.restoreState()
+            y -= 24
+    else:
+        c.saveState()
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(18*mm, y, "No competitive share of voice data available.")
+        c.restoreState()
+        y -= 20
+
+    y -= 10
+
+    # ── COMPETITIVE GAPS ───────────────────────────────────────────────────────
+    # Check if we need a new page for gaps section (~50mm per gap card)
+    if y < 130*mm:
+        page_footer(c, 4, 8, url, brand_name)
+        c.showPage()
+        y = H - 20*mm
+        draw_rect(c, 0, H - 14*mm, W, 14*mm, fill=NAVY)
+        c.saveState()
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(WHITE)
+        c.drawString(18*mm, H - 9*mm, "Competitive Intelligence (cont.)")
+        c.setFont("Helvetica", 8)
+        c.setFillColor(colors.HexColor("#A0B4C8"))
+        c.drawRightString(W - 18*mm, H - 9*mm, f"{brand_name} · {url}")
+        c.restoreState()
+        y = H - 26*mm
+
+    y = section_header(c, y, "Competitive Gaps", "Opportunities where competitors outperform your brand")
+    y -= 14
+
+    gaps = competitive_gaps.get("gaps", [])
+    gap_categories = competitive_gaps.get("categories", {})
+
+    if gaps:
+        for idx, gap in enumerate(gaps[:5]):
+            # Guard: if not enough space, break
+            if y < 60*mm:
+                break
+            gap_name = gap.get("term" if "term" in gap else "gap", str(gap))
+            gap_severity = gap.get("severity", "medium")
+            gap_competitors = gap.get("competitors", [])
+
+            card_h = 42
+            draw_rect(c, 18*mm, y - card_h + 8, W - 36*mm, card_h, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
+
+            # Severity indicator
+            sev_col = RED_SOFT if gap_severity == "critical" else ORANGE if gap_severity == "high" else GOLD
+            draw_rect(c, 18*mm, y - card_h + 8, 4, card_h, fill=sev_col, radius=2)
+
+            c.saveState()
+            c.setFont("Helvetica-Bold", 9)
+            c.setFillColor(TEXT_DARK)
+            c.drawString(26*mm, y, gap_name[:50])
+            c.setFont("Helvetica", 7.5)
+            c.setFillColor(TEXT_MID)
+            comp_str = ", ".join(str(c)[:20] for c in gap_competitors[:3])
+            c.drawString(26*mm, y - 12, f"Competitors: {comp_str}")
+            c.restoreState()
+
+            # Severity badge
+            sev_w = 55
+            draw_rect(c, W - 18*mm - sev_w - 10, y - 2, sev_w, 14, fill=sev_col, radius=4)
+            c.saveState()
+            c.setFont("Helvetica-Bold", 7)
+            c.setFillColor(WHITE)
+            c.drawCentredString(W - 18*mm - sev_w/2 - 10, y + 1.5, gap_severity.upper())
+            c.restoreState()
+
+            y -= card_h + 6
+    elif gap_categories:
+        # Alternative: gaps stored as categories dict
+        for cat, cat_data in list(gap_categories.items())[:4]:
+            if isinstance(cat_data, dict):
+                severity = cat_data.get("severity", "medium")
+                sev_col = RED_SOFT if severity == "critical" else ORANGE if severity == "high" else GOLD
+                c.saveState()
+                c.setFont("Helvetica-Bold", 8.5)
+                c.setFillColor(TEXT_DARK)
+                c.drawString(18*mm, y, f"• {cat}")
+                c.setFont("Helvetica", 8)
+                c.setFillColor(TEXT_MID)
+                c.drawRightString(W - 18*mm, y, severity.upper())
+                c.restoreState()
+                y -= 14
+    else:
+        c.saveState()
+        c.setFont("Helvetica", 8)
+        c.setFillColor(TEXT_MID)
+        c.drawString(18*mm, y, "No competitive gap data available.")
+        c.restoreState()
+        y -= 20
+
+    # Overall competitive position
+    overall_position = competitive.get("overall_position", "unknown")
+    c.saveState()
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(TEXT_DARK)
+    c.drawString(18*mm, y, f"Overall Competitive Position: ")
+    c.setFont("Helvetica", 8)
+    c.setFillColor(ACCENT)
+    pos_col = GREEN if overall_position == "leader" else ACCENT if overall_position == "challenger" else ORANGE if overall_position == "follower" else TEXT_MID
+    c.setFillColor(pos_col)
+    c.drawString(18*mm + c.stringWidth("Overall Competitive Position: ", "Helvetica-Bold", 8), y, overall_position.title())
+    c.restoreState()
+
+    page_footer(c, 4, 8, url, brand_name)
+    c.showPage()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 5 — CHINA PLATFORM DEEP DIVE (Advisory)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def draw_page5_china(c, data):
+    url = data.get("url", "")
+    brand_name = data.get("brand_name", "")
+    cn_platforms = data.get("cn_platforms", {})
+
+    y = H - 20*mm
+
+    # Page header strip
+    draw_rect(c, 0, H - 14*mm, W, 14*mm, fill=NAVY)
+    c.saveState()
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(WHITE)
+    c.drawString(18*mm, H - 9*mm, "China Platform Deep Dive")
+    c.setFont("Helvetica", 8)
+    c.setFillColor(colors.HexColor("#A0B4C8"))
+    c.drawRightString(W - 18*mm, H - 9*mm, f"{brand_name} · {url}")
+    c.restoreState()
+
+    y = H - 26*mm
+
+    # ── PLATFORM PRESENCE ─────────────────────────────────────────────────────
+    y = section_header(c, y, "Chinese AI Platform Presence", "Brand visibility on China-specific AI platforms")
+    y -= 14
+
+    # Platform cards
+    platform_cards = [
+        ("Baidu Wenxin", cn_platforms.get("baidu_wenxin", {}), "baidu_wenxin_score"),
+        ("Alibaba Tongyi", cn_platforms.get("alibaba_tongyi", {}), "alibaba_tongyi_score"),
+        ("ByteDance DouAI", cn_platforms.get("bytedance_douai", {}), "bytedance_douai_score"),
+        ("Moonshot Kimi", cn_platforms.get("moonshot_kimi", {}), "moonshot_kimi_score"),
+        ("iFlytek Spark", cn_platforms.get("iflytek_spark", {}), "iflytek_spark_score"),
+        ("Tencent Hunyuan", cn_platforms.get("tencent_hunyuan", {}), "tencent_hunyuan_score"),
+    ]
+
+    card_w = (W - 36*mm - 10) / 3
+    card_h = 45
+
+    for i, (plat_name, plat_data, score_key) in enumerate(platform_cards):
+        row = i // 3
+        col = i % 3
+        cx = 18*mm + col * (card_w + 5)
+        cy = y - row * (card_h + 8) - card_h
+
+        draw_rect(c, cx, cy, card_w, card_h, fill=WHITE, stroke=BORDER, radius=6, lw=0.6)
+
+        # Platform name
+        c.saveState()
+        font_reg, font_bold = get_font_for_text()
+        c.setFont(font_bold, 8.5)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(cx + 8, cy + card_h - 12, plat_name)
+        c.restoreState()
+
+        # Score or presence status
+        if isinstance(plat_data, dict):
+            present = plat_data.get("present", False)
+            handle = plat_data.get("handle", "")
+            score = plat_data.get(score_key, plat_data.get("score", 0))
+
+            if present:
+                c.saveState()
+                c.setFont("Helvetica-Bold", 12)
+                c.setFillColor(GREEN)
+                c.drawString(cx + 8, cy + card_h/2 - 4, "✓ Present")
+                c.setFont("Helvetica", 7)
+                c.setFillColor(TEXT_MID)
+                if handle:
+                    handle_disp = handle[:20]
+                    c.drawString(cx + 8, cy + 12, handle_disp)
+                c.restoreState()
+            else:
+                c.saveState()
+                c.setFont("Helvetica-Bold", 12)
+                c.setFillColor(RED_SOFT)
+                c.drawString(cx + 8, cy + card_h/2 - 4, "✗ Missing")
+                c.setFont("Helvetica", 7)
+                c.setFillColor(TEXT_LIGHT)
+                c.drawString(cx + 8, cy + 12, "Not detected")
+                c.restoreState()
+        else:
+            # Numeric score
+            score_val = float(plat_data) if plat_data else 0
+            c.saveState()
+            c.setFont("Helvetica-Bold", 14)
+            col = ACCENT if score_val >= 70 else GOLD if score_val >= 50 else ORANGE
+            c.setFillColor(col)
+            c.drawCentredString(cx + card_w/2, cy + card_h/2 - 4, f"{score_val:.1f}")
+            c.setFont("Helvetica", 6)
+            c.setFillColor(TEXT_LIGHT)
+            c.drawCentredString(cx + card_w/2, cy + 10, "/100 score")
+            c.restoreState()
+
+    y -= (card_h + 8) * 2
+    y -= 10
+
+    # ── LANGUAGE & CONTENT ANALYSIS ───────────────────────────────────────────
+    y = section_header(c, y, "Language & Content Readiness", "Bilingual content and Chinese-language signals")
+    y -= 14
+
+    chinese_char_ratio = cn_platforms.get("chinese_char_ratio", 0)
+    is_bilingual = cn_platforms.get("is_bilingual", False)
+    has_cn_schema = cn_platforms.get("has_cn_schema", False)
+    schemas_found = cn_platforms.get("schemas_found", [])
+    cn_recommendations = cn_platforms.get("recommendations", [])
+
+    lang_cards = [
+        ("Chinese Char Ratio", f"{int(chinese_char_ratio * 100)}%", "Content in Chinese"),
+        ("Bilingual Content", "Yes" if is_bilingual else "No", "CN + EN content"),
+        ("CN Schema", "Yes" if has_cn_schema else "No", "Chinese schema markup"),
+    ]
+
+    # Only draw lang cards if we have enough space (need ~50mm for section + cards)
+    if y > 100*mm:
+        for i, (label_text, val, sub) in enumerate(lang_cards):
+            cx = 18*mm + i * ((W - 36*mm) / 3 + 2)
+            cy = y - 35
+            draw_rect(c, cx, cy, (W - 36*mm) / 3, 35, fill=WHITE, stroke=BORDER, radius=5, lw=0.5)
+
+            c.saveState()
+            c.setFont("Helvetica-Bold", 7)
+            c.setFillColor(TEXT_DARK)
+            c.drawCentredString(cx + ((W - 36*mm) / 3)/2, cy + 25, label_text)
+            c.setFont("Helvetica-Bold", 12)
+            val_col = GREEN if val in ("Yes", "Present") else RED_SOFT if val in ("No", "Missing") else TEXT_DARK
+            c.setFillColor(val_col)
+            c.drawCentredString(cx + ((W - 36*mm) / 3)/2, cy + 13, str(val))
+            c.setFont("Helvetica", 6)
+            c.setFillColor(TEXT_LIGHT)
+            c.drawCentredString(cx + ((W - 36*mm) / 3)/2, cy + 4, sub)
+            c.restoreState()
+
+        y -= 45
+
+    # Schemas found
+    if schemas_found and y > 50*mm:
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, "Chinese Schema Types Found:")
+        c.restoreState()
+        y -= 12
+        for schema in schemas_found[:5]:
+            if y < 25*mm:
+                break
+            c.saveState()
+            c.setFont("Helvetica", 7.5)
+            c.setFillColor(TEXT_MID)
+            c.drawString(22*mm, y, f"• {schema}")
+            c.restoreState()
+            y -= 10
+        y -= 6
+
+    # Recommendations
+    if cn_recommendations and y > 50*mm:
+        c.saveState()
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(TEXT_DARK)
+        c.drawString(18*mm, y, "China Platform Recommendations:")
+        c.restoreState()
+        y -= 12
+        for rec in cn_recommendations[:4]:
+            if y < 25*mm:
+                break
+            c.saveState()
+            c.setFont("Helvetica", 7.5)
+            c.setFillColor(TEXT_MID)
+            rec_text = rec[:85] + "..." if len(rec) > 85 else rec
+            c.drawString(22*mm, y, f"• {rec_text}")
+            c.restoreState()
+            y -= 11
+
+    page_footer(c, 5, 8, url, brand_name)
+    c.showPage()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 6 — CRAWLER ACCESS & BRAND AUTHORITY
+# ══════════════════════════════════════════════════════════════════════════════
+
+def draw_page6(c, data):
     url = data.get("url", "")
     brand_name = data.get("brand_name", "")
     crawlers = data.get("crawlers", [])
@@ -1055,14 +1675,14 @@ def draw_page3(c, data):
             c.restoreState()
             y -= 18
 
-    page_footer(c, 3, 5, url, brand_name)
+    page_footer(c, 6, 8, url, brand_name)
     c.showPage()
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PAGE 4 — KEY FINDINGS
+# PAGE 7 — KEY FINDINGS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def draw_page4(c, data):
+def draw_page7(c, data):
     url = data.get("url", "")
     brand_name = data.get("brand_name", "")
     findings = data.get("findings", [])
@@ -1164,14 +1784,14 @@ def draw_page4(c, data):
 
         y -= card_h + 8
 
-    page_footer(c, 4, 5, url, brand_name)
+    page_footer(c, 7, 8, url, brand_name)
     c.showPage()
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PAGE 5 — ACTION PLAN & METHODOLOGY
+# PAGE 8 — ACTION PLAN & METHODOLOGY
 # ══════════════════════════════════════════════════════════════════════════════
 
-def draw_page5(c, data):
+def draw_page8(c, data):
     url = data.get("url", "")
     brand_name = data.get("brand_name", "")
     date = data.get("date", datetime.now().strftime("%Y-%m-%d"))
@@ -1360,7 +1980,7 @@ def draw_page5(c, data):
         dy -= 9
     c.restoreState()
 
-    page_footer(c, 5, 5, url, brand_name)
+    page_footer(c, 8, 8, url, brand_name)
     c.showPage()
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1376,9 +1996,12 @@ def generate_report(data, output_path="GEO-REPORT.pdf"):
 
     draw_cover(c, data)
     draw_page2(c, data)
-    draw_page3(c, data)
-    draw_page4(c, data)
-    draw_page5(c, data)
+    draw_page3_multimodal(c, data)
+    draw_page4_competitive(c, data)
+    draw_page5_china(c, data)
+    draw_page6(c, data)
+    draw_page7(c, data)
+    draw_page8(c, data)
 
     c.save()
     return output_path
